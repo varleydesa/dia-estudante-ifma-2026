@@ -126,6 +126,7 @@
   function linhaParticipante(inscricao, p, { indentada } = {}) {
     return `
       <tr class="${indentada ? 'linha-detalhe' : ''}">
+        <td>${indentada ? '' : inscricao.id}</td>
         <td></td>
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
@@ -168,6 +169,7 @@
 
       linhas.push(`
         <tr class="linha-grupo" data-toggle-grupo="${inscricao.id}">
+          <td>${inscricao.id}</td>
           <td><button type="button" class="botao-expandir" aria-expanded="${expandido}">${expandido ? '▾' : '▸'}</button></td>
           <td>${inscricao.modalidade_nome}</td>
           <td>${inscricao.nivel || '—'}</td>
