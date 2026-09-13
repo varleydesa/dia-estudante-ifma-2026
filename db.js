@@ -9,7 +9,35 @@ const authToken = process.env.TURSO_AUTH_TOKEN;
 
 const db = createClient(authToken ? { url, authToken } : { url });
 
+// Migra a tabela "admin" do formato antigo (uma única linha fixa, id = 1)
+// para suportar múltiplos administradores, preservando a conta já existente.
+async function migrarAdminParaMultiUsuario() {
+  const { rows } = await db.execute(
+    "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'admin'"
+  );
+  const sqlAtual = rows[0]?.sql || '';
+  const precisaMigrar = /CHECK\s*\(\s*id\s*=\s*1\s*\)/i.test(sqlAtual);
+  if (!precisaMigrar) return;
+
+  await db.executeMultiple(`
+    CREATE TABLE admin_novo (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario TEXT NOT NULL UNIQUE,
+      senha_hash TEXT NOT NULL,
+      senha_trocada INTEGER NOT NULL DEFAULT 0,
+      atualizado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    INSERT INTO admin_novo (usuario, senha_hash, senha_trocada, atualizado_em)
+      SELECT usuario, senha_hash, senha_trocada, atualizado_em FROM admin;
+    DROP TABLE admin;
+    ALTER TABLE admin_novo RENAME TO admin;
+  `);
+  console.log('Tabela "admin" migrada para suportar múltiplos administradores.');
+}
+
 async function iniciar() {
+  await migrarAdminParaMultiUsuario();
+
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,8 +68,8 @@ async function iniciar() {
     CREATE INDEX IF NOT EXISTS idx_inscricoes_modalidade ON inscricoes(modalidade_id);
 
     CREATE TABLE IF NOT EXISTS admin (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      usuario TEXT NOT NULL,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario TEXT NOT NULL UNIQUE,
       senha_hash TEXT NOT NULL,
       senha_trocada INTEGER NOT NULL DEFAULT 0,
       atualizado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))

@@ -273,7 +273,7 @@ app.get(
   '/api/admin/me',
   auth.exigirLogin,
   rota(async (req, res) => {
-    const admin = await auth.buscarAdmin();
+    const admin = await auth.buscarAdminPorUsuario(req.session.adminUsuario);
     res.json({
       usuario: req.session.adminUsuario,
       precisaTrocarSenha: !admin || admin.senha_trocada === 0,
@@ -287,7 +287,7 @@ app.post(
   rota(async (req, res) => {
     const { senhaAtual, novaSenha, confirmarSenha } = req.body || {};
 
-    if (!textoValido(senhaAtual, 200) || !(await auth.conferirSenhaAtual(senhaAtual))) {
+    if (!textoValido(senhaAtual, 200) || !(await auth.conferirSenhaAtual(req.session.adminUsuario, senhaAtual))) {
       return erro(res, 400, 'Senha atual incorreta.');
     }
     if (!textoValido(novaSenha, 200) || novaSenha.length < 8) {
@@ -297,7 +297,7 @@ app.post(
       return erro(res, 400, 'A confirmação não confere com a nova senha.');
     }
 
-    await auth.trocarSenha(novaSenha);
+    await auth.trocarSenha(req.session.adminUsuario, novaSenha);
     res.json({ ok: true });
   })
 );
@@ -312,7 +312,7 @@ app.delete(
     }
 
     const { senha } = req.body || {};
-    if (!textoValido(senha, 200) || !(await auth.conferirSenhaAtual(senha))) {
+    if (!textoValido(senha, 200) || !(await auth.conferirSenhaAtual(req.session.adminUsuario, senha))) {
       return erro(res, 403, 'Senha incorreta.');
     }
 
