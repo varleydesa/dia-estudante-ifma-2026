@@ -18,6 +18,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: 'Raleway', 'Segoe UI', Arial, sans-serif;
@@ -425,84 +429,65 @@ footer.principal a {
   opacity: 1;
 }
 
-/* ===== Barra de resumo (modalidades selecionadas) ===== */
-.barra-resumo {
-  position: sticky;
-  top: 0;
-  z-index: 15;
-  background: var(--branco);
-  border-bottom: 1px solid var(--borda);
-  box-shadow: var(--sombra);
+/* ===== Progresso do formulário por etapas ===== */
+.progresso-etapas {
+  margin-bottom: 24px;
 }
 
-.barra-resumo[hidden] {
-  display: none;
-}
-
-.barra-resumo-conteudo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px 20px;
-}
-
-.barra-resumo-rotulo {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--texto-claro);
-  white-space: nowrap;
-}
-
-.barra-resumo-itens {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip-modalidade {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--verde-suave);
-  border: 1px solid var(--verde);
+.progresso-barra {
+  height: 6px;
+  background: var(--borda);
   border-radius: 999px;
-  padding: 4px 6px 4px 12px;
-  font-size: 0.82rem;
+  overflow: hidden;
 }
 
-.chip-modalidade a {
-  color: var(--verde-escuro);
+.progresso-preenchido {
+  height: 100%;
+  width: 0%;
+  background: var(--verde);
+  transition: width 0.25s ease;
+}
+
+.progresso-texto {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
   font-weight: 600;
-  text-decoration: none;
+  color: var(--texto-claro);
 }
 
-.chip-modalidade a:hover {
-  text-decoration: underline;
+.resumo-revisao-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borda);
 }
 
-.chip-modalidade button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--vinho);
-  font-size: 1rem;
-  line-height: 1;
-  padding: 2px 7px;
-  border-radius: 999px;
+.resumo-revisao-item:last-child {
+  border-bottom: none;
 }
 
-.chip-modalidade button:hover {
-  background: rgba(155, 39, 67, 0.12);
+.resumo-revisao-item h4 {
+  margin: 0 0 4px;
+  color: var(--verde-escuro);
+}
+
+.resumo-revisao-item p {
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+  color: var(--texto-claro);
+}
+
+.resumo-revisao-item a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* ===== Formulário de inscrição ===== */
 .pagina-form {
   padding: 40px 0 80px;
-}
-
-.painel-modalidade {
-  scroll-margin-top: 160px;
 }
 
 .cabecalho-form h1 {
@@ -632,19 +617,6 @@ fieldset.secao-form legend {
   letter-spacing: 0.06em;
   color: var(--texto-claro);
   margin: 18px 0 10px;
-}
-
-.painel-modalidade {
-  border: 1.5px dashed var(--verde);
-  border-radius: 12px;
-  padding: 18px;
-  margin-top: 14px;
-  background: var(--verde-suave);
-}
-
-.painel-modalidade h4 {
-  margin: 0 0 12px;
-  color: var(--verde-escuro);
 }
 
 .linha-atleta {

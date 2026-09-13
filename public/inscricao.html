@@ -32,72 +32,84 @@
     </div>
   </header>
 
-  <div class="barra-resumo" id="barra-resumo" hidden>
-    <div class="container barra-resumo-conteudo">
-      <span class="barra-resumo-rotulo">Selecionadas:</span>
-      <div class="barra-resumo-itens" id="barra-resumo-itens"></div>
-    </div>
-  </div>
-
   <main class="pagina-form">
     <div class="container">
       <div class="cabecalho-form">
         <h1>Formulário de inscrição</h1>
-        <p>Preencha seus dados uma vez e marque quantas modalidades quiser. Os campos de cada modalidade aparecem automaticamente ao marcá-la.</p>
+        <p>Preencha um passo de cada vez. Você pode voltar para revisar antes de enviar.</p>
+      </div>
+
+      <div class="progresso-etapas">
+        <div class="progresso-barra"><div class="progresso-preenchido" id="progresso-preenchido"></div></div>
+        <p class="progresso-texto" id="progresso-texto"></p>
       </div>
 
       <div id="mensagem-envio" class="mensagem-envio" role="status"></div>
 
       <form id="form-inscricao" novalidate>
-        <fieldset class="secao-form">
-          <legend>Seus dados</legend>
-          <div class="grade-campos">
-            <div class="campo">
-              <label for="resp-nome">Nome completo <span class="obrigatorio">*</span></label>
-              <input type="text" id="resp-nome" required maxlength="200" />
-            </div>
-            <div class="campo">
-              <label for="resp-matricula">Matrícula <span class="obrigatorio">*</span></label>
-              <input type="text" id="resp-matricula" required maxlength="50" />
-            </div>
-            <div class="campo">
-              <label for="resp-curso">Curso <span class="obrigatorio">*</span></label>
-              <input type="text" id="resp-curso" required maxlength="150" />
-            </div>
-            <div class="campo">
-              <label for="resp-telefone">Telefone (WhatsApp) <span class="obrigatorio">*</span></label>
-              <input type="tel" id="resp-telefone" required maxlength="30" placeholder="(00) 00000-0000" />
-            </div>
-            <div class="campo">
-              <label for="resp-email">E-mail <span class="obrigatorio">*</span></label>
-              <input type="email" id="resp-email" required maxlength="120" />
-            </div>
-            <div class="campo">
-              <label>Nível de ensino <span class="obrigatorio">*</span></label>
-              <div class="grupo-radio">
-                <label class="opcao-radio"><input type="radio" name="resp-nivel" value="Ensino Médio" required /> Ensino Médio</label>
-                <label class="opcao-radio"><input type="radio" name="resp-nivel" value="Ensino Superior" /> Ensino Superior</label>
+        <div class="etapa" data-etapa-tipo="dados">
+          <fieldset class="secao-form">
+            <legend>Seus dados</legend>
+            <div class="grade-campos">
+              <div class="campo">
+                <label for="resp-nome">Nome completo <span class="obrigatorio">*</span></label>
+                <input type="text" id="resp-nome" required maxlength="200" />
+              </div>
+              <div class="campo">
+                <label for="resp-matricula">Matrícula <span class="obrigatorio">*</span></label>
+                <input type="text" id="resp-matricula" required maxlength="50" />
+              </div>
+              <div class="campo">
+                <label for="resp-curso">Curso <span class="obrigatorio">*</span></label>
+                <input type="text" id="resp-curso" required maxlength="150" />
+              </div>
+              <div class="campo">
+                <label for="resp-telefone">Telefone (WhatsApp) <span class="obrigatorio">*</span></label>
+                <input type="tel" id="resp-telefone" required maxlength="30" placeholder="(00) 00000-0000" />
+              </div>
+              <div class="campo">
+                <label for="resp-email">E-mail <span class="obrigatorio">*</span></label>
+                <input type="email" id="resp-email" required maxlength="120" />
+              </div>
+              <div class="campo">
+                <label>Nível de ensino <span class="obrigatorio">*</span></label>
+                <div class="grupo-radio">
+                  <label class="opcao-radio"><input type="radio" name="resp-nivel" value="Ensino Médio" required /> Ensino Médio</label>
+                  <label class="opcao-radio"><input type="radio" name="resp-nivel" value="Ensino Superior" /> Ensino Superior</label>
+                </div>
               </div>
             </div>
-          </div>
-        </fieldset>
+          </fieldset>
+        </div>
 
-        <fieldset class="secao-form">
-          <legend>Modalidades</legend>
-          <p>Marque quantas modalidades desejar disputar. Preencha somente as seções das modalidades escolhidas.</p>
+        <div class="etapa" data-etapa-tipo="modalidades" hidden>
+          <fieldset class="secao-form">
+            <legend>Modalidades</legend>
+            <p>Marque quantas modalidades desejar disputar.</p>
 
-          <div class="subgrupo-titulo">Modalidades individuais</div>
-          <div class="lista-modalidades-form" id="lista-individuais"></div>
+            <div class="subgrupo-titulo">Modalidades individuais</div>
+            <div class="lista-modalidades-form" id="lista-individuais"></div>
 
-          <div class="subgrupo-titulo">Modalidades coletivas</div>
-          <div class="lista-modalidades-form" id="lista-equipes"></div>
+            <div class="subgrupo-titulo">Modalidades coletivas</div>
+            <div class="lista-modalidades-form" id="lista-equipes"></div>
+          </fieldset>
+        </div>
 
-          <div id="paineis-modalidades"></div>
-        </fieldset>
+        <div id="etapas-detalhe"></div>
+
+        <div class="etapa" data-etapa-tipo="revisao" hidden>
+          <fieldset class="secao-form">
+            <legend>Revisão</legend>
+            <p>Confira os dados antes de enviar. Clique em "Editar" para corrigir algo.</p>
+            <div id="resumo-revisao"></div>
+          </fieldset>
+        </div>
 
         <div class="rodape-form">
-          <a href="index.html" class="btn btn-secundario">Voltar</a>
-          <button type="submit" class="btn btn-vinho" id="btn-enviar">Enviar inscrição</button>
+          <a href="index.html" class="btn btn-secundario" id="btn-cancelar">Cancelar</a>
+          <button type="button" class="btn btn-secundario" id="btn-voltar" hidden>Voltar</button>
+          <button type="button" class="btn btn-primario" id="btn-avancar">Avançar</button>
+          <button type="button" class="btn btn-vinho" id="btn-enviar" hidden>Enviar inscrição</button>
         </div>
       </form>
     </div>

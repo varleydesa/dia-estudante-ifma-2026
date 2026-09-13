@@ -1,15 +1,21 @@
 (function () {
-  const listaIndividuais = document.getElementById('lista-individuais');
-  const listaEquipes = document.getElementById('lista-equipes');
-  const paineis = document.getElementById('paineis-modalidades');
   const mensagem = document.getElementById('mensagem-envio');
   const form = document.getElementById('form-inscricao');
+  const listaIndividuais = document.getElementById('lista-individuais');
+  const listaEquipes = document.getElementById('lista-equipes');
+  const etapasDetalheContainer = document.getElementById('etapas-detalhe');
+  const resumoRevisao = document.getElementById('resumo-revisao');
+  const progressoPreenchido = document.getElementById('progresso-preenchido');
+  const progressoTexto = document.getElementById('progresso-texto');
+  const btnCancelar = document.getElementById('btn-cancelar');
+  const btnVoltar = document.getElementById('btn-voltar');
+  const btnAvancar = document.getElementById('btn-avancar');
   const btnEnviar = document.getElementById('btn-enviar');
-  const barraResumo = document.getElementById('barra-resumo');
-  const barraResumoItens = document.getElementById('barra-resumo-itens');
 
   let modalidades = [];
   const contadorAtletaPorModalidade = {};
+  let sequenciaEtapas = [{ tipo: 'dados' }, { tipo: 'modalidades' }, { tipo: 'revisao' }];
+  let etapaAtual = 0;
 
   init();
 
@@ -21,69 +27,18 @@
       return;
     }
 
-    listaIndividuais.innerHTML = modalidades.filter((m) => m.tipo === 'individual').map(renderOpcao).join('');
-    listaEquipes.innerHTML = modalidades.filter((m) => m.tipo === 'equipe').map(renderOpcao).join('');
+    listaIndividuais.innerHTML = modalidades.filter((m) => m.tipo === 'individual').map(renderOpcaoModalidade).join('');
+    listaEquipes.innerHTML = modalidades.filter((m) => m.tipo === 'equipe').map(renderOpcaoModalidade).join('');
 
-    document.querySelectorAll('[data-toggle-modalidade]').forEach((chk) => {
-      chk.addEventListener('change', () => {
-        alternarPainel(chk.dataset.toggleModalidade, chk.checked);
-        atualizarResumo();
-      });
-    });
+    btnVoltar.addEventListener('click', () => irParaEtapa(etapaAtual - 1));
+    btnAvancar.addEventListener('click', aoAvancar);
+    btnEnviar.addEventListener('click', aoEnviar);
+    form.addEventListener('submit', (evento) => evento.preventDefault());
 
-    barraResumoItens.addEventListener('click', (evento) => {
-      const botaoRemover = evento.target.closest('[data-remover-chip]');
-      if (botaoRemover) {
-        evento.preventDefault();
-        const id = botaoRemover.dataset.removerChip;
-        const chk = document.querySelector(`[data-toggle-modalidade="${id}"]`);
-        chk.checked = false;
-        alternarPainel(id, false);
-        atualizarResumo();
-        return;
-      }
-
-      const link = evento.target.closest('[data-ir-para]');
-      if (link) {
-        evento.preventDefault();
-        document.getElementById(`painel-${link.dataset.irPara}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-
-    ajustarPosicaoBarraResumo();
-    window.addEventListener('resize', ajustarPosicaoBarraResumo);
-
-    form.addEventListener('submit', aoEnviar);
+    renderEtapaAtual();
   }
 
-  function ajustarPosicaoBarraResumo() {
-    const header = document.querySelector('header.principal');
-    if (header) barraResumo.style.top = `${header.getBoundingClientRect().height}px`;
-  }
-
-  function atualizarResumo() {
-    const marcadas = modalidades.filter((m) => document.querySelector(`[data-toggle-modalidade="${m.id}"]`)?.checked);
-
-    if (marcadas.length === 0) {
-      barraResumo.hidden = true;
-      barraResumoItens.innerHTML = '';
-      return;
-    }
-
-    barraResumo.hidden = false;
-    barraResumoItens.innerHTML = marcadas
-      .map(
-        (m) => `
-          <span class="chip-modalidade">
-            <a href="#painel-${m.id}" data-ir-para="${m.id}">${m.nome}</a>
-            <button type="button" data-remover-chip="${m.id}" aria-label="Remover ${m.nome}">×</button>
-          </span>
-        `
-      )
-      .join('');
-  }
-
-  function renderOpcao(m) {
+  function renderOpcaoModalidade(m) {
     return `
       <label class="opcao-modalidade">
         <div class="cabecalho-opcao">
@@ -95,19 +50,102 @@
     `;
   }
 
-  function alternarPainel(id, ligado) {
-    const existente = document.getElementById(`painel-${id}`);
-    if (ligado && !existente) {
-      const modalidade = window.Modalidades.porId(modalidades, id);
-      paineis.insertAdjacentHTML('beforeend', renderPainel(modalidade));
-      ligarEventosPainel(modalidade);
-    } else if (!ligado && existente) {
-      existente.remove();
-    }
+  // ---------- Navegação entre etapas ----------
+
+  function irParaEtapa(indice) {
+    etapaAtual = Math.max(0, Math.min(indice, sequenciaEtapas.length - 1));
+    renderEtapaAtual();
   }
 
-  function renderPainel(m) {
-    const partes = [`<div class="painel-modalidade" id="painel-${m.id}"><h4>${m.nome}</h4>`];
+  function elementoDaEtapa(etapa) {
+    if (etapa.tipo === 'detalhe') return document.getElementById(`etapa-${etapa.modalidadeId}`);
+    return document.querySelector(`[data-etapa-tipo="${etapa.tipo}"]`);
+  }
+
+  function nomeDaEtapa(etapa) {
+    if (etapa.tipo === 'dados') return 'Seus dados';
+    if (etapa.tipo === 'modalidades') return 'Escolha das modalidades';
+    if (etapa.tipo === 'revisao') return 'Revisão e envio';
+    const m = window.Modalidades.porId(modalidades, etapa.modalidadeId);
+    return m ? m.nome : 'Detalhes';
+  }
+
+  function renderEtapaAtual() {
+    mensagem.className = 'mensagem-envio';
+
+    document.querySelectorAll('.etapa[data-etapa-tipo]').forEach((el) => {
+      el.hidden = true;
+    });
+
+    const etapa = sequenciaEtapas[etapaAtual];
+    const elEtapa = elementoDaEtapa(etapa);
+    if (elEtapa) elEtapa.hidden = false;
+
+    if (etapa.tipo === 'revisao') renderRevisao();
+
+    const total = sequenciaEtapas.length;
+    progressoPreenchido.style.width = `${((etapaAtual + 1) / total) * 100}%`;
+    progressoTexto.textContent = `Passo ${etapaAtual + 1} de ${total} — ${nomeDaEtapa(etapa)}`;
+
+    btnCancelar.hidden = etapaAtual !== 0;
+    btnVoltar.hidden = etapaAtual === 0;
+    btnAvancar.hidden = etapa.tipo === 'revisao';
+    btnEnviar.hidden = etapa.tipo !== 'revisao';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function aoAvancar() {
+    const etapa = sequenciaEtapas[etapaAtual];
+
+    if (etapa.tipo === 'dados') {
+      const erroMsg = validarDados();
+      if (erroMsg) return mostrarMensagem('erro', erroMsg);
+    } else if (etapa.tipo === 'modalidades') {
+      const marcadas = modalidadesMarcadas();
+      if (marcadas.length === 0) return mostrarMensagem('erro', 'Marque ao menos uma modalidade para se inscrever.');
+      reconstruirEtapasDetalhe(marcadas);
+    } else if (etapa.tipo === 'detalhe') {
+      const m = window.Modalidades.porId(modalidades, etapa.modalidadeId);
+      const resultado = validarModalidade(m);
+      if (resultado.erro) return mostrarMensagem('erro', resultado.erro);
+    }
+
+    irParaEtapa(etapaAtual + 1);
+  }
+
+  function modalidadesMarcadas() {
+    return Array.from(document.querySelectorAll('[data-toggle-modalidade]:checked')).map((chk) => chk.dataset.toggleModalidade);
+  }
+
+  function reconstruirEtapasDetalhe(idsMarcados) {
+    document.querySelectorAll('#etapas-detalhe .etapa').forEach((el) => {
+      if (!idsMarcados.includes(el.dataset.modalidadeId)) el.remove();
+    });
+
+    for (const id of idsMarcados) {
+      if (!document.getElementById(`etapa-${id}`)) {
+        const m = window.Modalidades.porId(modalidades, id);
+        etapasDetalheContainer.insertAdjacentHTML('beforeend', renderEtapaDetalhe(m));
+        ligarEventosPainel(m);
+      }
+    }
+
+    sequenciaEtapas = [
+      { tipo: 'dados' },
+      { tipo: 'modalidades' },
+      ...idsMarcados.map((id) => ({ tipo: 'detalhe', modalidadeId: id })),
+      { tipo: 'revisao' },
+    ];
+  }
+
+  // ---------- Renderização de cada modalidade ----------
+
+  function renderEtapaDetalhe(m) {
+    const partes = [
+      `<div class="etapa" id="etapa-${m.id}" data-etapa-tipo="detalhe" data-modalidade-id="${m.id}" hidden>`,
+      `<fieldset class="secao-form"><legend>${m.nome}</legend>`,
+    ];
 
     if (m.categorias.length > 1) {
       partes.push(`
@@ -146,8 +184,8 @@
           <input type="text" id="equipe-nome-${m.id}" maxlength="100" required />
         </div>
         <p style="font-size:0.85rem;color:var(--texto-claro)">
-          Você (responsável pelos dados acima) será incluído automaticamente como capitão(ã) da equipe.
-          Adicione abaixo os demais integrantes.
+          Você (responsável pelos dados informados na primeira etapa) será incluído automaticamente como
+          capitão(ã) da equipe. Adicione abaixo os demais integrantes.
         </p>
         <div id="atletas-${m.id}"></div>
         <button type="button" class="btn btn-fantasma btn-pequeno" data-add-atleta="${m.id}">+ Adicionar integrante</button>
@@ -155,7 +193,7 @@
       `);
     }
 
-    partes.push('</div>');
+    partes.push('</fieldset></div>');
     return partes.join('');
   }
 
@@ -255,6 +293,8 @@
     return n;
   }
 
+  // ---------- Validação ----------
+
   function mostrarMensagem(tipo, texto) {
     mensagem.textContent = texto;
     mensagem.className = `mensagem-envio ${tipo}`;
@@ -266,11 +306,8 @@
     return el ? el.value : null;
   }
 
-  async function aoEnviar(evento) {
-    evento.preventDefault();
-    mensagem.className = 'mensagem-envio';
-
-    const responsavel = {
+  function coletarResponsavel() {
+    return {
       nome_completo: document.getElementById('resp-nome').value.trim(),
       matricula: document.getElementById('resp-matricula').value.trim(),
       curso: document.getElementById('resp-curso').value.trim(),
@@ -278,98 +315,161 @@
       email: document.getElementById('resp-email').value.trim(),
       nivel: valorRadio('resp-nivel'),
     };
+  }
 
-    if (!responsavel.nome_completo || !responsavel.matricula || !responsavel.curso || !responsavel.telefone || !responsavel.email) {
-      mostrarMensagem('erro', 'Preencha todos os campos obrigatórios em "Seus dados".');
+  function validarDados() {
+    const r = coletarResponsavel();
+    if (!r.nome_completo || !r.matricula || !r.curso || !r.telefone || !r.email) {
+      return 'Preencha todos os campos obrigatórios em "Seus dados".';
+    }
+    if (!r.nivel) {
+      return 'Selecione seu nível de ensino.';
+    }
+    return null;
+  }
+
+  // Valida os campos de uma modalidade e devolve o item pronto para envio.
+  function validarModalidade(m) {
+    const item = { modalidade_id: m.id };
+
+    if (m.categorias.length > 1) {
+      const categoria = valorRadio(`categoria-${m.id}`);
+      if (!categoria) return { erro: `Selecione a categoria em "${m.nome}".` };
+      item.categoria = categoria;
+    }
+
+    if (m.multiProva) {
+      const provas = Array.from(document.querySelectorAll(`input[name="prova-${m.id}"]:checked`)).map((c) => c.value);
+      if (provas.length === 0) return { erro: `Selecione ao menos uma prova em "${m.nome}".` };
+      item.provas = provas;
+    }
+
+    if (m.tipo === 'equipe') {
+      const nomeEquipe = document.getElementById(`equipe-nome-${m.id}`).value.trim();
+      if (!nomeEquipe) return { erro: `Informe o nome da equipe em "${m.nome}".` };
+      item.nome_equipe = nomeEquipe;
+
+      const linhas = document.querySelectorAll(`#atletas-${m.id} .linha-atleta`);
+      const atletas = [];
+      for (const linha of linhas) {
+        const nome = linha.querySelector('[data-atleta-nome]').value.trim();
+        const matricula = linha.querySelector('[data-atleta-matricula]').value.trim();
+        const curso = linha.querySelector('[data-atleta-curso]').value.trim();
+        if (!nome || !matricula) return { erro: `Preencha nome e matrícula de todos os integrantes em "${m.nome}".` };
+        const atleta = { nome_completo: nome, matricula, curso: curso || undefined };
+        const selTitular = linha.querySelector('[data-atleta-titular]');
+        if (selTitular) atleta.titular = selTitular.value === 'titular';
+        atletas.push(atleta);
+      }
+
+      const total = atletas.length + 1;
+      if (m.minAtletas && total < m.minAtletas) {
+        return { erro: `"${m.nome}" exige no mínimo ${m.minAtletas} integrantes (você tem ${total}).` };
+      }
+      if (m.maxAtletas && total > m.maxAtletas) {
+        return { erro: `"${m.nome}" permite no máximo ${m.maxAtletas} integrantes (você tem ${total}).` };
+      }
+      if (m.titulares) {
+        const titulares = 1 + atletas.filter((a) => a.titular).length;
+        const reservas = atletas.filter((a) => !a.titular).length;
+        if (titulares !== m.titulares) {
+          return { erro: `"${m.nome}" exige exatamente ${m.titulares} titulares (você tem ${titulares}).` };
+        }
+        if (reservas > m.reservas) {
+          return { erro: `"${m.nome}" permite no máximo ${m.reservas} reservas (você tem ${reservas}), que são opcionais.` };
+        }
+      }
+
+      item.atletas = atletas;
+    }
+
+    return { item };
+  }
+
+  function idsDetalheSelecionados() {
+    return sequenciaEtapas.filter((e) => e.tipo === 'detalhe').map((e) => e.modalidadeId);
+  }
+
+  // ---------- Revisão ----------
+
+  function renderRevisao() {
+    const responsavel = coletarResponsavel();
+    const blocos = [
+      `
+        <div class="resumo-revisao-item">
+          <div>
+            <h4>Seus dados</h4>
+            <p>${responsavel.nome_completo || '—'} · ${responsavel.matricula || '—'} · ${responsavel.curso || '—'}</p>
+            <p>${responsavel.telefone || '—'} · ${responsavel.email || '—'} · ${responsavel.nivel || '—'}</p>
+          </div>
+          <a href="#" data-editar-etapa="0">Editar</a>
+        </div>
+      `,
+    ];
+
+    sequenciaEtapas.forEach((etapa, indice) => {
+      if (etapa.tipo !== 'detalhe') return;
+      const m = window.Modalidades.porId(modalidades, etapa.modalidadeId);
+      const categoria = valorRadio(`categoria-${m.id}`) || (m.categorias.length === 1 ? m.categorias[0] : '—');
+      const detalhesExtras = [];
+      if (m.multiProva) {
+        const provas = Array.from(document.querySelectorAll(`input[name="prova-${m.id}"]:checked`)).map((c) => c.value);
+        detalhesExtras.push(`Provas: ${provas.length ? provas.join(', ') : '—'}`);
+      }
+      if (m.tipo === 'equipe') {
+        const nomeEquipe = document.getElementById(`equipe-nome-${m.id}`)?.value.trim() || '—';
+        const totalAtletas = document.querySelectorAll(`#atletas-${m.id} .linha-atleta`).length + 1;
+        detalhesExtras.push(`Equipe: ${nomeEquipe} · ${totalAtletas} integrante(s)`);
+      }
+
+      blocos.push(`
+        <div class="resumo-revisao-item">
+          <div>
+            <h4>${m.nome}</h4>
+            <p>Categoria: ${categoria}</p>
+            ${detalhesExtras.map((d) => `<p>${d}</p>`).join('')}
+          </div>
+          <a href="#" data-editar-etapa="${indice}">Editar</a>
+        </div>
+      `);
+    });
+
+    resumoRevisao.innerHTML = blocos.join('');
+    resumoRevisao.querySelectorAll('[data-editar-etapa]').forEach((link) => {
+      link.addEventListener('click', (evento) => {
+        evento.preventDefault();
+        irParaEtapa(Number(link.dataset.editarEtapa));
+      });
+    });
+  }
+
+  // ---------- Envio final ----------
+
+  async function aoEnviar() {
+    mensagem.className = 'mensagem-envio';
+
+    const erroDados = validarDados();
+    if (erroDados) {
+      mostrarMensagem('erro', erroDados);
       return;
     }
-    if (!responsavel.nivel) {
-      mostrarMensagem('erro', 'Selecione seu nível de ensino.');
-      return;
-    }
+    const responsavel = coletarResponsavel();
 
-    const marcadas = Array.from(document.querySelectorAll('[data-toggle-modalidade]:checked')).map(
-      (chk) => chk.dataset.toggleModalidade
-    );
-
-    if (marcadas.length === 0) {
-      mostrarMensagem('erro', 'Marque ao menos uma modalidade para se inscrever.');
+    const idsSelecionados = idsDetalheSelecionados();
+    if (idsSelecionados.length === 0) {
+      mostrarMensagem('erro', 'Selecione ao menos uma modalidade para se inscrever.');
       return;
     }
 
     const inscricoes = [];
-    for (const id of marcadas) {
+    for (const id of idsSelecionados) {
       const m = window.Modalidades.porId(modalidades, id);
-      const item = { modalidade_id: id };
-
-      if (m.categorias.length > 1) {
-        const categoria = valorRadio(`categoria-${id}`);
-        if (!categoria) {
-          mostrarMensagem('erro', `Selecione a categoria em "${m.nome}".`);
-          return;
-        }
-        item.categoria = categoria;
+      const resultado = validarModalidade(m);
+      if (resultado.erro) {
+        mostrarMensagem('erro', resultado.erro);
+        return;
       }
-
-      if (m.multiProva) {
-        const provas = Array.from(document.querySelectorAll(`input[name="prova-${id}"]:checked`)).map((c) => c.value);
-        if (provas.length === 0) {
-          mostrarMensagem('erro', `Selecione ao menos uma prova em "${m.nome}".`);
-          return;
-        }
-        item.provas = provas;
-      }
-
-      if (m.tipo === 'equipe') {
-        const nomeEquipe = document.getElementById(`equipe-nome-${id}`).value.trim();
-        if (!nomeEquipe) {
-          mostrarMensagem('erro', `Informe o nome da equipe em "${m.nome}".`);
-          return;
-        }
-        item.nome_equipe = nomeEquipe;
-
-        const linhas = document.querySelectorAll(`#atletas-${id} .linha-atleta`);
-        const atletas = [];
-        for (const linha of linhas) {
-          const nome = linha.querySelector('[data-atleta-nome]').value.trim();
-          const matricula = linha.querySelector('[data-atleta-matricula]').value.trim();
-          const curso = linha.querySelector('[data-atleta-curso]').value.trim();
-          if (!nome || !matricula) {
-            mostrarMensagem('erro', `Preencha nome e matrícula de todos os integrantes em "${m.nome}".`);
-            return;
-          }
-          const atleta = { nome_completo: nome, matricula, curso: curso || undefined };
-          const selTitular = linha.querySelector('[data-atleta-titular]');
-          if (selTitular) atleta.titular = selTitular.value === 'titular';
-          atletas.push(atleta);
-        }
-
-        const total = atletas.length + 1;
-        if (m.minAtletas && total < m.minAtletas) {
-          mostrarMensagem('erro', `"${m.nome}" exige no mínimo ${m.minAtletas} integrantes (você tem ${total}).`);
-          return;
-        }
-        if (m.maxAtletas && total > m.maxAtletas) {
-          mostrarMensagem('erro', `"${m.nome}" permite no máximo ${m.maxAtletas} integrantes (você tem ${total}).`);
-          return;
-        }
-        if (m.titulares) {
-          const titulares = 1 + atletas.filter((a) => a.titular).length;
-          const reservas = atletas.filter((a) => !a.titular).length;
-          if (titulares !== m.titulares) {
-            mostrarMensagem('erro', `"${m.nome}" exige exatamente ${m.titulares} titulares (você tem ${titulares}).`);
-            return;
-          }
-          if (reservas > m.reservas) {
-            mostrarMensagem('erro', `"${m.nome}" permite no máximo ${m.reservas} reservas (você tem ${reservas}), que são opcionais.`);
-            return;
-          }
-        }
-
-        item.atletas = atletas;
-      }
-
-      inscricoes.push(item);
+      inscricoes.push(resultado.item);
     }
 
     btnEnviar.disabled = true;
@@ -390,8 +490,9 @@
 
       mostrarMensagem('sucesso', 'Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.');
       form.reset();
-      paineis.innerHTML = '';
-      atualizarResumo();
+      etapasDetalheContainer.innerHTML = '';
+      sequenciaEtapas = [{ tipo: 'dados' }, { tipo: 'modalidades' }, { tipo: 'revisao' }];
+      irParaEtapa(0);
     } catch (e) {
       mostrarMensagem('erro', 'Falha de conexão. Verifique sua internet e tente novamente.');
     } finally {
