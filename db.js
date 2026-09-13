@@ -45,8 +45,10 @@ async function migrarFusoHorario(tabela, colunaData, colunasCopiar) {
   const sqlAtual = rows[0]?.sql || '';
   if (!sqlAtual.includes("'localtime'")) return;
 
+  // O nome da tabela pode aparecer com ou sem aspas no SQL armazenado
+  // (ex: depois de um ALTER TABLE ... RENAME anterior), então aceitamos os dois casos.
   const novoSql = sqlAtual
-    .replace(new RegExp(`CREATE TABLE ${tabela}`, 'i'), `CREATE TABLE ${tabela}_novo`)
+    .replace(/^CREATE TABLE\s+["'`]?\w+["'`]?/i, `CREATE TABLE ${tabela}_novo`)
     .replace(/datetime\('now',\s*'localtime'\)/g, "datetime('now', '-3 hours')");
 
   await db.executeMultiple(`
