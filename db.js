@@ -25,7 +25,7 @@ async function migrarAdminParaMultiUsuario() {
       usuario TEXT NOT NULL UNIQUE,
       senha_hash TEXT NOT NULL,
       senha_trocada INTEGER NOT NULL DEFAULT 0,
-      atualizado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+      atualizado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
     INSERT INTO admin_novo (usuario, senha_hash, senha_trocada, atualizado_em)
       SELECT usuario, senha_hash, senha_trocada, atualizado_em FROM admin;
@@ -35,8 +35,37 @@ async function migrarAdminParaMultiUsuario() {
   console.log('Tabela "admin" migrada para suportar múltiplos administradores.');
 }
 
+// Corrige tabelas criadas antes da troca de 'localtime' (fuso do servidor,
+// que na nuvem é UTC) por um deslocamento fixo de -3h (horário de Brasília).
+async function migrarFusoHorario(tabela, colunaData, colunasCopiar) {
+  const { rows } = await db.execute({
+    sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?",
+    args: [tabela],
+  });
+  const sqlAtual = rows[0]?.sql || '';
+  if (!sqlAtual.includes("'localtime'")) return;
+
+  const novoSql = sqlAtual
+    .replace(new RegExp(`CREATE TABLE ${tabela}`, 'i'), `CREATE TABLE ${tabela}_novo`)
+    .replace(/datetime\('now',\s*'localtime'\)/g, "datetime('now', '-3 hours')");
+
+  await db.executeMultiple(`
+    ${novoSql};
+    INSERT INTO ${tabela}_novo (${colunasCopiar}) SELECT ${colunasCopiar} FROM ${tabela};
+    DROP TABLE ${tabela};
+    ALTER TABLE ${tabela}_novo RENAME TO ${tabela};
+  `);
+  console.log(`Tabela "${tabela}" migrada para horário de Brasília (${colunaData}).`);
+}
+
 async function iniciar() {
   await migrarAdminParaMultiUsuario();
+  await migrarFusoHorario('admin', 'atualizado_em', 'id, usuario, senha_hash, senha_trocada, atualizado_em');
+  await migrarFusoHorario(
+    'inscricoes',
+    'criado_em',
+    'id, modalidade_id, modalidade_nome, tipo, nivel, categoria, nome_equipe, provas, observacoes, criado_em'
+  );
 
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
@@ -49,7 +78,7 @@ async function iniciar() {
       nome_equipe TEXT,
       provas TEXT,
       observacoes TEXT,
-      criado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+      criado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
 
     CREATE TABLE IF NOT EXISTS participantes (
@@ -72,7 +101,7 @@ async function iniciar() {
       usuario TEXT NOT NULL UNIQUE,
       senha_hash TEXT NOT NULL,
       senha_trocada INTEGER NOT NULL DEFAULT 0,
-      atualizado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+      atualizado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
   `);
 }

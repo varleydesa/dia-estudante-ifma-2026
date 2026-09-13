@@ -45,7 +45,7 @@ async function verificarLogin(usuario, senha) {
 async function trocarSenha(usuario, novaSenha) {
   const hash = bcrypt.hashSync(novaSenha, 10);
   await db.execute({
-    sql: "UPDATE admin SET senha_hash = ?, senha_trocada = 1, atualizado_em = datetime('now','localtime') WHERE lower(usuario) = lower(?)",
+    sql: "UPDATE admin SET senha_hash = ?, senha_trocada = 1, atualizado_em = datetime('now','-3 hours') WHERE lower(usuario) = lower(?)",
     args: [hash, String(usuario).trim()],
   });
 }
