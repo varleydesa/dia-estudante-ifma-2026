@@ -111,7 +111,7 @@ nav.principal ul {
   flex-wrap: wrap;
 }
 
-nav.principal a {
+nav.principal a:not(.btn) {
   text-decoration: none;
   color: var(--texto);
   font-weight: 600;
@@ -120,8 +120,8 @@ nav.principal a {
   border-bottom: 2px solid transparent;
 }
 
-nav.principal a:hover,
-nav.principal a.ativo {
+nav.principal a:not(.btn):hover,
+nav.principal a.ativo:not(.btn) {
   color: var(--verde-escuro);
   border-bottom-color: var(--verde);
 }
