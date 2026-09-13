@@ -338,7 +338,7 @@ async function carregarInscricoes() {
       p.capitao, p.titular
     FROM inscricoes i
     LEFT JOIN participantes p ON p.inscricao_id = i.id
-    ORDER BY i.criado_em DESC, p.capitao DESC, p.id ASC
+    ORDER BY i.criado_em ASC, p.capitao DESC, p.id ASC
   `);
 
   const porInscricao = new Map();
