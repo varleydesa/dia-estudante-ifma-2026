@@ -123,6 +123,25 @@
     return `<button type="button" class="btn btn-remover btn-pequeno" data-excluir="${inscricao.id}" data-descricao="${descricao.replace(/"/g, '&quot;')}">Excluir</button>`;
   }
 
+  // Salvaguarda: uma inscrição sem nenhum participante não deveria existir,
+  // mas se acontecer (ex: inconsistência de dados), mostra uma linha própria
+  // em vez de travar a tabela inteira tentando ler um participante inexistente.
+  function linhaSemParticipantes(inscricao) {
+    return `
+      <tr>
+        <td>${inscricao.id}</td>
+        <td></td>
+        <td>${inscricao.modalidade_nome}</td>
+        <td>${inscricao.nivel || '—'}</td>
+        <td>${inscricao.categoria || '—'}</td>
+        <td>${inscricao.nome_equipe || '—'}</td>
+        <td colspan="6" style="color:var(--erro)">Sem dados de participante registrados.</td>
+        <td>${inscricao.criado_em}</td>
+        <td>${botaoExcluir(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}</td>
+      </tr>
+    `;
+  }
+
   function linhaParticipante(inscricao, p, { indentada } = {}) {
     return `
       <tr class="${indentada ? 'linha-detalhe' : ''}">
@@ -157,6 +176,11 @@
     const linhas = [];
 
     for (const { inscricao, buscaAtiva } of grupos) {
+      if (inscricao.participantes.length === 0) {
+        linhas.push(linhaSemParticipantes(inscricao));
+        continue;
+      }
+
       const ehEquipe = inscricao.tipo === 'equipe' && inscricao.participantes.length > 1;
 
       if (!ehEquipe) {

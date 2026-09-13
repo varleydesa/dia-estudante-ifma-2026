@@ -61,6 +61,10 @@ async function migrarFusoHorario(tabela, colunaData, colunasCopiar) {
 }
 
 async function iniciar() {
+  // O Turso mantém "foreign_keys" ligado por padrão. Migrações que recriam
+  // tabelas (DROP + RENAME) disparariam ON DELETE CASCADE contra as linhas
+  // dependentes (ex: participantes) se isso ficasse ligado durante o processo.
+  await db.execute('PRAGMA foreign_keys = OFF');
   await migrarAdminParaMultiUsuario();
   await migrarFusoHorario('admin', 'atualizado_em', 'id, usuario, senha_hash, senha_trocada, atualizado_em');
   await migrarFusoHorario(
@@ -68,6 +72,7 @@ async function iniciar() {
     'criado_em',
     'id, modalidade_id, modalidade_nome, tipo, nivel, categoria, nome_equipe, provas, observacoes, criado_em'
   );
+  await db.execute('PRAGMA foreign_keys = ON');
 
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
