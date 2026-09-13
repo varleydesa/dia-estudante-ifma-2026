@@ -302,6 +302,30 @@ app.post(
   })
 );
 
+app.delete(
+  '/api/admin/inscricoes/:id',
+  auth.exigirLogin,
+  rota(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return erro(res, 400, 'ID inválido.');
+    }
+
+    const { senha } = req.body || {};
+    if (!textoValido(senha, 200) || !(await auth.conferirSenhaAtual(senha))) {
+      return erro(res, 403, 'Senha incorreta.');
+    }
+
+    await db.execute({ sql: 'DELETE FROM participantes WHERE inscricao_id = ?', args: [id] });
+    const resultado = await db.execute({ sql: 'DELETE FROM inscricoes WHERE id = ?', args: [id] });
+
+    if (resultado.rowsAffected === 0) {
+      return erro(res, 404, 'Inscrição não encontrada.');
+    }
+    res.json({ ok: true });
+  })
+);
+
 // ---------- Consulta das inscrições (protegida) ----------
 
 async function carregarInscricoes() {

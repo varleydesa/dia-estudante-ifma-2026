@@ -834,6 +834,39 @@ tr.linha-detalhe td:nth-child(2) {
   width: 20px;
 }
 
+.overlay-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 24, 12, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.overlay-modal[hidden] {
+  display: none;
+}
+
+.caixa-modal {
+  background: var(--branco);
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--sombra);
+}
+
+.caixa-modal h3 {
+  margin: 0 0 8px;
+  color: var(--vinho-escuro);
+}
+
+.caixa-modal .campo {
+  margin-top: 12px;
+}
+
 @media (max-width: 760px) {
   .hero-conteudo {
     grid-template-columns: 1fr;

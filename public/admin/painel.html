@@ -83,6 +83,7 @@
                   <th>E-mail</th>
                   <th>Provas</th>
                   <th>Inscrito em</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody id="corpo-tabela"></tbody>
@@ -92,6 +93,23 @@
       </div>
     </div>
   </main>
+
+  <div class="overlay-modal" id="modal-excluir" hidden>
+    <div class="caixa-modal">
+      <h3>Confirmar exclusão</h3>
+      <p id="descricao-exclusao">Tem certeza que deseja excluir esta inscrição?</p>
+      <p style="font-size:0.85rem;color:var(--texto-claro)">Essa ação não pode ser desfeita. Digite sua senha de admin para confirmar.</p>
+      <div class="campo">
+        <label for="senha-confirmar-exclusao">Senha</label>
+        <input type="password" id="senha-confirmar-exclusao" autocomplete="current-password" />
+      </div>
+      <div id="erro-exclusao" class="mensagem-envio erro" style="display:none"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+        <button type="button" class="btn btn-secundario btn-pequeno" id="btn-cancelar-exclusao">Cancelar</button>
+        <button type="button" class="btn btn-vinho btn-pequeno" id="btn-confirmar-exclusao">Excluir</button>
+      </div>
+    </div>
+  </div>
 
   <script src="../js/modalidades.js"></script>
   <script src="js/painel.js"></script>

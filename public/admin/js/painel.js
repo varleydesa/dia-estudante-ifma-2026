@@ -9,10 +9,17 @@
   const corpoTabela = document.getElementById('corpo-tabela');
   const contagemResultados = document.getElementById('contagem-resultados');
   const btnSair = document.getElementById('btn-sair');
+  const modalExcluir = document.getElementById('modal-excluir');
+  const descricaoExclusao = document.getElementById('descricao-exclusao');
+  const senhaExclusao = document.getElementById('senha-confirmar-exclusao');
+  const erroExclusao = document.getElementById('erro-exclusao');
+  const btnCancelarExclusao = document.getElementById('btn-cancelar-exclusao');
+  const btnConfirmarExclusao = document.getElementById('btn-confirmar-exclusao');
 
   let inscricoes = [];
   let modalidades = [];
   const gruposExpandidos = new Set();
+  let idParaExcluir = null;
 
   init();
 
@@ -109,6 +116,10 @@
     return papel || '—';
   }
 
+  function botaoExcluir(inscricao, descricao) {
+    return `<button type="button" class="btn btn-remover btn-pequeno" data-excluir="${inscricao.id}" data-descricao="${descricao.replace(/"/g, '&quot;')}">Excluir</button>`;
+  }
+
   function linhaParticipante(inscricao, p, { indentada } = {}) {
     return `
       <tr class="${indentada ? 'linha-detalhe' : ''}">
@@ -125,6 +136,7 @@
         <td>${p.email || '—'}</td>
         <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
+        <td>${indentada ? '' : botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}</td>
       </tr>
     `;
   }
@@ -166,6 +178,7 @@
           <td>—</td>
           <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
           <td>${inscricao.criado_em}</td>
+          <td>${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
         </tr>
       `);
 
@@ -180,6 +193,12 @@
   }
 
   corpoTabela.addEventListener('click', (evento) => {
+    const botaoExcluirClicado = evento.target.closest('[data-excluir]');
+    if (botaoExcluirClicado) {
+      abrirModalExclusao(Number(botaoExcluirClicado.dataset.excluir), botaoExcluirClicado.dataset.descricao);
+      return;
+    }
+
     const linha = evento.target.closest('[data-toggle-grupo]');
     if (!linha) return;
     const id = Number(linha.dataset.toggleGrupo);
@@ -189,6 +208,65 @@
       gruposExpandidos.add(id);
     }
     renderTabela();
+  });
+
+  function abrirModalExclusao(id, descricao) {
+    idParaExcluir = id;
+    descricaoExclusao.textContent = `Tem certeza que deseja excluir "${descricao}"?`;
+    senhaExclusao.value = '';
+    erroExclusao.style.display = 'none';
+    modalExcluir.hidden = false;
+    senhaExclusao.focus();
+  }
+
+  function fecharModalExclusao() {
+    idParaExcluir = null;
+    modalExcluir.hidden = true;
+  }
+
+  btnCancelarExclusao.addEventListener('click', fecharModalExclusao);
+  modalExcluir.addEventListener('click', (evento) => {
+    if (evento.target === modalExcluir) fecharModalExclusao();
+  });
+
+  btnConfirmarExclusao.addEventListener('click', async () => {
+    if (!idParaExcluir) return;
+    const senha = senhaExclusao.value;
+    if (!senha) {
+      erroExclusao.textContent = 'Digite sua senha.';
+      erroExclusao.style.display = 'block';
+      return;
+    }
+
+    btnConfirmarExclusao.disabled = true;
+    btnConfirmarExclusao.textContent = 'Excluindo…';
+
+    try {
+      const resp = await fetch(`/api/admin/inscricoes/${idParaExcluir}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senha }),
+      });
+      const dados = await resp.json();
+
+      if (!resp.ok) {
+        erroExclusao.textContent = dados.erro || 'Não foi possível excluir.';
+        erroExclusao.style.display = 'block';
+        return;
+      }
+
+      inscricoes = inscricoes.filter((i) => i.id !== idParaExcluir);
+      gruposExpandidos.delete(idParaExcluir);
+      fecharModalExclusao();
+      renderResumo();
+      renderTabela();
+    } catch (e) {
+      erroExclusao.textContent = 'Falha de conexão. Tente novamente.';
+      erroExclusao.style.display = 'block';
+    } finally {
+      btnConfirmarExclusao.disabled = false;
+      btnConfirmarExclusao.textContent = 'Excluir';
+    }
   });
 
   filtroModalidade.addEventListener('change', renderTabela);
