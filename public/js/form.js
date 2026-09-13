@@ -488,11 +488,11 @@
         return;
       }
 
-      mostrarMensagem('sucesso', 'Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.');
       form.reset();
       etapasDetalheContainer.innerHTML = '';
       sequenciaEtapas = [{ tipo: 'dados' }, { tipo: 'modalidades' }, { tipo: 'revisao' }];
       irParaEtapa(0);
+      mostrarMensagem('sucesso', 'Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.');
     } catch (e) {
       mostrarMensagem('erro', 'Falha de conexão. Verifique sua internet e tente novamente.');
     } finally {
