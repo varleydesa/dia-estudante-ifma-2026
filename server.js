@@ -382,15 +382,37 @@ app.get(
   })
 );
 
+function filtrarInscricoes(inscricoes, { modalidadeId, nivel, busca }) {
+  return inscricoes.filter((inscricao) => {
+    if (modalidadeId && inscricao.modalidade_id !== modalidadeId) return false;
+    if (nivel && inscricao.nivel !== nivel) return false;
+    if (busca) {
+      const nomeEquipeCorresponde = (inscricao.nome_equipe || '').toLowerCase().includes(busca);
+      const algumParticipanteCorresponde = inscricao.participantes.some((p) =>
+        p.nome_completo.toLowerCase().includes(busca)
+      );
+      if (!nomeEquipeCorresponde && !algumParticipanteCorresponde) return false;
+    }
+    return true;
+  });
+}
+
 app.get(
   '/api/admin/inscricoes.csv',
   auth.exigirLogin,
   rota(async (req, res) => {
+    const filtros = {
+      modalidadeId: typeof req.query.modalidade === 'string' ? req.query.modalidade : '',
+      nivel: typeof req.query.nivel === 'string' ? req.query.nivel : '',
+      busca: typeof req.query.busca === 'string' ? req.query.busca.trim().toLowerCase() : '',
+    };
+
     const linhas = [
       ['Modalidade', 'Tipo', 'Nível', 'Categoria', 'Equipe', 'Provas', 'Capitão', 'Titular/Reserva', 'Nome', 'Matrícula', 'Curso', 'Telefone', 'E-mail', 'Inscrito em'],
     ];
 
-    for (const inscricao of await carregarInscricoes()) {
+    const inscricoes = filtrarInscricoes(await carregarInscricoes(), filtros);
+    for (const inscricao of inscricoes) {
       for (const p of inscricao.participantes) {
         linhas.push([
           inscricao.modalidade_nome,

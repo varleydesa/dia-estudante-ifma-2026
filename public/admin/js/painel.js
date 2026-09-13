@@ -9,6 +9,7 @@
   const corpoTabela = document.getElementById('corpo-tabela');
   const contagemResultados = document.getElementById('contagem-resultados');
   const btnSair = document.getElementById('btn-sair');
+  const linkCsv = document.getElementById('link-csv');
   const modalExcluir = document.getElementById('modal-excluir');
   const descricaoExclusao = document.getElementById('descricao-exclusao');
   const senhaExclusao = document.getElementById('senha-confirmar-exclusao');
@@ -190,6 +191,18 @@
     }
 
     corpoTabela.innerHTML = linhas.join('');
+    atualizarLinkCsv();
+  }
+
+  function atualizarLinkCsv() {
+    const params = new URLSearchParams();
+    if (filtroModalidade.value) params.set('modalidade', filtroModalidade.value);
+    if (filtroNivel.value) params.set('nivel', filtroNivel.value);
+    if (filtroBusca.value.trim()) params.set('busca', filtroBusca.value.trim());
+
+    const query = params.toString();
+    linkCsv.href = query ? `/api/admin/inscricoes.csv?${query}` : '/api/admin/inscricoes.csv';
+    linkCsv.textContent = query ? 'Exportar CSV (filtrado)' : 'Exportar CSV (tudo)';
   }
 
   corpoTabela.addEventListener('click', (evento) => {
