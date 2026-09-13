@@ -11,6 +11,8 @@
   const btnVoltar = document.getElementById('btn-voltar');
   const btnAvancar = document.getElementById('btn-avancar');
   const btnEnviar = document.getElementById('btn-enviar');
+  const progressoEtapas = document.getElementById('progresso-etapas');
+  const acoesPosEnvio = document.getElementById('acoes-pos-envio');
 
   let modalidades = [];
   const contadorAtletaPorModalidade = {};
@@ -488,10 +490,9 @@
         return;
       }
 
-      form.reset();
-      etapasDetalheContainer.innerHTML = '';
-      sequenciaEtapas = [{ tipo: 'dados' }, { tipo: 'modalidades' }, { tipo: 'revisao' }];
-      irParaEtapa(0);
+      form.hidden = true;
+      progressoEtapas.hidden = true;
+      acoesPosEnvio.hidden = false;
       mostrarMensagem('sucesso', 'Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.');
     } catch (e) {
       mostrarMensagem('erro', 'Falha de conexão. Verifique sua internet e tente novamente.');

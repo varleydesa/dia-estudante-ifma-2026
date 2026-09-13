@@ -39,12 +39,16 @@
         <p>Preencha um passo de cada vez. Você pode voltar para revisar antes de enviar.</p>
       </div>
 
-      <div class="progresso-etapas">
+      <div class="progresso-etapas" id="progresso-etapas">
         <div class="progresso-barra"><div class="progresso-preenchido" id="progresso-preenchido"></div></div>
         <p class="progresso-texto" id="progresso-texto"></p>
       </div>
 
       <div id="mensagem-envio" class="mensagem-envio" role="status"></div>
+
+      <div class="acoes-pos-envio" id="acoes-pos-envio" hidden>
+        <a href="index.html" class="btn btn-secundario">Retornar à página inicial</a>
+      </div>
 
       <form id="form-inscricao" novalidate>
         <div class="etapa" data-etapa-tipo="dados">
