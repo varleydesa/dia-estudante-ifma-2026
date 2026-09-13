@@ -1,0 +1,18 @@
+{
+  "name": "dia-estudante-ifma-2026",
+  "version": "1.0.0",
+  "description": "Site de inscrição para o Dia do Estudante 2026 - IFMA Campus São Raimundo das Mangabeiras",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "express-session": "^1.19.0"
+  }
+}

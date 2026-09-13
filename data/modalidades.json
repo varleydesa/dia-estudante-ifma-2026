@@ -1,0 +1,88 @@
+[
+  {
+    "id": "xadrez",
+    "nome": "Xadrez",
+    "tipo": "individual",
+    "temNivel": false,
+    "categorias": ["Masculino", "Feminino"],
+    "previsao": "Sexta-feira à noite e sábado pela manhã"
+  },
+  {
+    "id": "atletismo",
+    "nome": "Atletismo",
+    "tipo": "individual",
+    "temNivel": true,
+    "categorias": ["Masculino", "Feminino"],
+    "multiProva": true,
+    "provas": [
+      "100m rasos",
+      "200m rasos",
+      "400m rasos",
+      "800m",
+      "1500m",
+      "Revezamento 4x100m",
+      "Salto em distância",
+      "Salto em altura",
+      "Arremesso de peso"
+    ],
+    "previsao": "Sábado pela manhã"
+  },
+  {
+    "id": "arremesso_basquete",
+    "nome": "Arremesso de Basquete",
+    "tipo": "individual",
+    "temNivel": false,
+    "categorias": ["Masculino", "Feminino"],
+    "previsao": "Período da tarde (dia a confirmar)"
+  },
+  {
+    "id": "dama",
+    "nome": "Dama",
+    "tipo": "individual",
+    "temNivel": false,
+    "categorias": ["Masculino", "Feminino"],
+    "previsao": "Sexta-feira à noite e sábado pela manhã"
+  },
+  {
+    "id": "tenis_mesa",
+    "nome": "Tênis de Mesa",
+    "tipo": "individual",
+    "temNivel": false,
+    "categorias": ["Masculino", "Feminino"],
+    "previsao": "Sábado pela manhã"
+  },
+  {
+    "id": "futebol",
+    "nome": "Futebol",
+    "tipo": "equipe",
+    "temNivel": true,
+    "categorias": ["Masculino", "Feminino"],
+    "minAtletas": 7,
+    "maxAtletas": 10,
+    "titulares": 7,
+    "reservas": 3,
+    "previsao": "Primeiras rodadas na sexta-feira à noite, com continuidade no sábado"
+  },
+  {
+    "id": "volei4x4",
+    "nome": "Vôlei 4x4",
+    "tipo": "equipe",
+    "temNivel": true,
+    "categorias": ["Misto"],
+    "minAtletas": 4,
+    "maxAtletas": 6,
+    "titulares": 4,
+    "reservas": 2,
+    "previsao": "Primeiras rodadas na sexta-feira à noite, com continuidade no sábado pela manhã"
+  },
+  {
+    "id": "queimada",
+    "nome": "Queimada",
+    "tipo": "equipe",
+    "temNivel": true,
+    "categorias": ["Masculino", "Feminino"],
+    "minAtletas": 10,
+    "maxAtletas": 10,
+    "previsao": "Sábado à tarde"
+  }
+]

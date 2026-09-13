@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel administrativo — Dia do Estudante 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="topo-institucional">
+    <div class="container">Ministério da Educação · Instituto Federal do Maranhão — Área administrativa</div>
+  </div>
+
+  <header class="principal">
+    <div class="container cabecalho-conteudo">
+      <div class="marca">
+        <span class="marca-sigla">IF</span>
+        <span class="marca-texto">
+          <strong>Painel administrativo</strong>
+          <span>Dia do Estudante 2026</span>
+        </span>
+      </div>
+      <nav class="principal">
+        <ul>
+          <li id="usuario-logado" style="font-weight:600;color:var(--texto-claro)"></li>
+          <li><a href="trocar-senha.html">Trocar senha</a></li>
+          <li><button type="button" class="btn btn-secundario btn-pequeno" id="btn-sair">Sair</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-form">
+    <div class="container">
+      <div id="carregando">Carregando inscrições…</div>
+
+      <div id="conteudo" style="display:none">
+        <div class="resumo-modalidades" id="resumo-modalidades"></div>
+
+        <fieldset class="secao-form">
+          <legend>Inscrições recebidas</legend>
+
+          <div class="barra-filtros">
+            <div class="campo">
+              <label for="filtro-modalidade">Modalidade</label>
+              <select id="filtro-modalidade">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="filtro-nivel">Nível</label>
+              <select id="filtro-nivel">
+                <option value="">Todos</option>
+                <option value="Ensino Médio">Ensino Médio</option>
+                <option value="Ensino Superior">Ensino Superior</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="filtro-busca">Buscar por nome ou equipe</label>
+              <input type="text" id="filtro-busca" placeholder="Digite para filtrar…" />
+            </div>
+            <a class="btn btn-primario btn-pequeno" id="link-csv" href="/api/admin/inscricoes.csv">Exportar CSV</a>
+          </div>
+
+          <p id="contagem-resultados" style="font-size:0.85rem;color:var(--texto-claro)"></p>
+
+          <div class="tabela-scroll">
+            <table class="tabela-inscricoes">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Modalidade</th>
+                  <th>Nível</th>
+                  <th>Categoria</th>
+                  <th>Equipe</th>
+                  <th>Papel</th>
+                  <th>Nome</th>
+                  <th>Matrícula</th>
+                  <th>Curso</th>
+                  <th>Telefone</th>
+                  <th>E-mail</th>
+                  <th>Provas</th>
+                  <th>Inscrito em</th>
+                </tr>
+              </thead>
+              <tbody id="corpo-tabela"></tbody>
+            </table>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/modalidades.js"></script>
+  <script src="js/painel.js"></script>
+</body>
+</html>

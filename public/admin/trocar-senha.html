@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trocar senha — Dia do Estudante 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="pagina-auth">
+    <div class="cartao-auth">
+      <span class="marca-sigla" style="width:56px;height:56px;display:flex;">IF</span>
+      <h1>Trocar senha</h1>
+      <p class="subtitulo" id="subtitulo">Defina uma nova senha de acesso.</p>
+
+      <div id="aviso-obrigatorio" class="aviso-obrigatorio" style="display:none">
+        Por segurança, você precisa trocar a senha inicial antes de acessar o painel.
+      </div>
+
+      <div id="mensagem" class="mensagem-envio" style="display:none"></div>
+
+      <form id="form-senha">
+        <div class="campo">
+          <label for="senha-atual">Senha atual</label>
+          <input type="password" id="senha-atual" required autocomplete="current-password" />
+        </div>
+        <div class="campo">
+          <label for="nova-senha">Nova senha (mínimo 8 caracteres)</label>
+          <input type="password" id="nova-senha" required minlength="8" autocomplete="new-password" />
+        </div>
+        <div class="campo">
+          <label for="confirmar-senha">Confirmar nova senha</label>
+          <input type="password" id="confirmar-senha" required minlength="8" autocomplete="new-password" />
+        </div>
+        <button type="submit" class="btn btn-vinho" id="btn-salvar">Salvar nova senha</button>
+      </form>
+
+      <p class="link-discreto" id="link-voltar" style="display:none"><a href="painel.html">Voltar ao painel sem trocar</a></p>
+    </div>
+  </div>
+
+  <script src="js/trocar-senha.js"></script>
+</body>
+</html>

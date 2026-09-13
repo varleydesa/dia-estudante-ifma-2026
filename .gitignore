@@ -1,0 +1,6 @@
+node_modules/
+.env
+data/inscricoes.db
+data/inscricoes.db-journal
+data/inscricoes.db-wal
+data/inscricoes.db-shm

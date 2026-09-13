@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login administrativo — Dia do Estudante 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="pagina-auth">
+    <div class="cartao-auth">
+      <span class="marca-sigla" style="width:56px;height:56px;display:flex;">IF</span>
+      <h1>Área administrativa</h1>
+      <p class="subtitulo">Dia do Estudante 2026 — Campus São Raimundo das Mangabeiras</p>
+
+      <div id="mensagem-erro" class="mensagem-envio erro" style="display:none"></div>
+
+      <form id="form-login">
+        <div class="campo">
+          <label for="usuario">Usuário</label>
+          <input type="text" id="usuario" required autocomplete="username" />
+        </div>
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-vinho" id="btn-entrar">Entrar</button>
+      </form>
+
+      <p class="link-discreto"><a href="../index.html">Voltar ao site</a></p>
+    </div>
+  </div>
+
+  <script src="js/login.js"></script>
+</body>
+</html>
