@@ -10,6 +10,8 @@
   const contagemResultados = document.getElementById('contagem-resultados');
   const btnSair = document.getElementById('btn-sair');
   const linkCsv = document.getElementById('link-csv');
+  const btnImprimir = document.getElementById('btn-imprimir');
+  const filtroImpressao = document.getElementById('filtro-impressao');
   const modalExcluir = document.getElementById('modal-excluir');
   const descricaoExclusao = document.getElementById('descricao-exclusao');
   const senhaExclusao = document.getElementById('senha-confirmar-exclusao');
@@ -191,10 +193,21 @@
     }
 
     corpoTabela.innerHTML = linhas.join('');
-    atualizarLinkCsv();
+    atualizarFiltrosDerivados();
   }
 
-  function atualizarLinkCsv() {
+  function descricaoFiltroAtivo() {
+    const partes = [];
+    if (filtroModalidade.value) {
+      const m = window.Modalidades.porId(modalidades, filtroModalidade.value);
+      partes.push(`Modalidade: ${m ? m.nome : filtroModalidade.value}`);
+    }
+    if (filtroNivel.value) partes.push(`Nível: ${filtroNivel.value}`);
+    if (filtroBusca.value.trim()) partes.push(`Busca: "${filtroBusca.value.trim()}"`);
+    return partes.join(' · ');
+  }
+
+  function atualizarFiltrosDerivados() {
     const params = new URLSearchParams();
     if (filtroModalidade.value) params.set('modalidade', filtroModalidade.value);
     if (filtroNivel.value) params.set('nivel', filtroNivel.value);
@@ -203,6 +216,11 @@
     const query = params.toString();
     linkCsv.href = query ? `/api/admin/inscricoes.csv?${query}` : '/api/admin/inscricoes.csv';
     linkCsv.textContent = query ? 'Exportar CSV (filtrado)' : 'Exportar CSV (tudo)';
+
+    const descricao = descricaoFiltroAtivo();
+    filtroImpressao.textContent = descricao
+      ? `Filtro aplicado: ${descricao} — gerado em ${new Date().toLocaleString('pt-BR')}`
+      : `Lista completa — gerado em ${new Date().toLocaleString('pt-BR')}`;
   }
 
   corpoTabela.addEventListener('click', (evento) => {
@@ -285,6 +303,13 @@
   filtroModalidade.addEventListener('change', renderTabela);
   filtroNivel.addEventListener('change', renderTabela);
   filtroBusca.addEventListener('input', renderTabela);
+
+  btnImprimir.addEventListener('click', () => {
+    // Expande todas as equipes antes de imprimir, para o elenco completo sair no papel.
+    inscricoes.forEach((i) => gruposExpandidos.add(i.id));
+    renderTabela();
+    window.print();
+  });
 
   btnSair.addEventListener('click', async () => {
     await fetch('/api/admin/logout', { method: 'POST' });

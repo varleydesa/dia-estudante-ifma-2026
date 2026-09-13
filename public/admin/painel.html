@@ -62,9 +62,15 @@
               <input type="text" id="filtro-busca" placeholder="Digite para filtrar…" />
             </div>
             <a class="btn btn-primario btn-pequeno" id="link-csv" href="/api/admin/inscricoes.csv">Exportar CSV</a>
+            <button type="button" class="btn btn-secundario btn-pequeno" id="btn-imprimir">Imprimir / PDF</button>
           </div>
 
           <p id="contagem-resultados" style="font-size:0.85rem;color:var(--texto-claro)"></p>
+
+          <div class="cabecalho-impressao" id="cabecalho-impressao">
+            <h2>Dia do Estudante 2026 — Lista de inscrições</h2>
+            <p id="filtro-impressao"></p>
+          </div>
 
           <div class="tabela-scroll">
             <table class="tabela-inscricoes">

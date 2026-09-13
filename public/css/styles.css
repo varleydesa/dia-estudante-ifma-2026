@@ -956,3 +956,89 @@ tr.linha-detalhe td:nth-child(2) {
     justify-content: space-between;
   }
 }
+
+/* ===== Impressão / PDF do painel administrativo ===== */
+.cabecalho-impressao {
+  display: none;
+}
+
+@media print {
+  .topo-institucional,
+  header.principal,
+  .barra-filtros,
+  #contagem-resultados,
+  .resumo-modalidades,
+  .rodape-form,
+  footer.principal,
+  .overlay-modal,
+  table.tabela-inscricoes th:last-child,
+  table.tabela-inscricoes td:last-child {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .cabecalho-impressao {
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .cabecalho-impressao h2 {
+    margin: 0 0 4px;
+    color: #000;
+  }
+
+  .cabecalho-impressao p {
+    margin: 0;
+    color: #333;
+    font-size: 0.85rem;
+  }
+
+  .secao-form {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+
+  .tabela-scroll {
+    overflow: visible;
+    box-shadow: none;
+    border: none;
+  }
+
+  table.tabela-inscricoes {
+    width: 100%;
+    min-width: 0;
+    font-size: 10px;
+  }
+
+  table.tabela-inscricoes th,
+  table.tabela-inscricoes td {
+    white-space: normal;
+    padding: 5px 6px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  table.tabela-inscricoes th {
+    position: static;
+    background: #e8e8e8 !important;
+    color: #000 !important;
+  }
+
+  tr.linha-grupo {
+    background: #f0f0f0 !important;
+  }
+
+  tr.linha-detalhe td {
+    background: #fafafa !important;
+  }
+
+  .emblema {
+    border: 1px solid #999;
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
