@@ -782,6 +782,31 @@ table.tabela-inscricoes tr:last-child td {
   border-bottom: none;
 }
 
+/* Coluna "Ações" fixa na borda direita, para não sumir ao rolar a tabela */
+table.tabela-inscricoes th:last-child,
+table.tabela-inscricoes td:last-child {
+  position: sticky;
+  right: 0;
+  box-shadow: -6px 0 6px -6px rgba(20, 30, 10, 0.25);
+}
+
+table.tabela-inscricoes th:last-child {
+  z-index: 2;
+}
+
+table.tabela-inscricoes td:last-child {
+  z-index: 1;
+  background: var(--branco);
+}
+
+tr.linha-grupo td:last-child {
+  background: var(--verde-suave);
+}
+
+tr.linha-detalhe td:last-child {
+  background: var(--bg);
+}
+
 .emblema {
   display: inline-block;
   font-size: 0.72rem;
