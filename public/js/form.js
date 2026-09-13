@@ -5,6 +5,8 @@
   const mensagem = document.getElementById('mensagem-envio');
   const form = document.getElementById('form-inscricao');
   const btnEnviar = document.getElementById('btn-enviar');
+  const barraResumo = document.getElementById('barra-resumo');
+  const barraResumoItens = document.getElementById('barra-resumo-itens');
 
   let modalidades = [];
   const contadorAtletaPorModalidade = {};
@@ -23,10 +25,62 @@
     listaEquipes.innerHTML = modalidades.filter((m) => m.tipo === 'equipe').map(renderOpcao).join('');
 
     document.querySelectorAll('[data-toggle-modalidade]').forEach((chk) => {
-      chk.addEventListener('change', () => alternarPainel(chk.dataset.toggleModalidade, chk.checked));
+      chk.addEventListener('change', () => {
+        alternarPainel(chk.dataset.toggleModalidade, chk.checked);
+        atualizarResumo();
+      });
     });
 
+    barraResumoItens.addEventListener('click', (evento) => {
+      const botaoRemover = evento.target.closest('[data-remover-chip]');
+      if (botaoRemover) {
+        evento.preventDefault();
+        const id = botaoRemover.dataset.removerChip;
+        const chk = document.querySelector(`[data-toggle-modalidade="${id}"]`);
+        chk.checked = false;
+        alternarPainel(id, false);
+        atualizarResumo();
+        return;
+      }
+
+      const link = evento.target.closest('[data-ir-para]');
+      if (link) {
+        evento.preventDefault();
+        document.getElementById(`painel-${link.dataset.irPara}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    ajustarPosicaoBarraResumo();
+    window.addEventListener('resize', ajustarPosicaoBarraResumo);
+
     form.addEventListener('submit', aoEnviar);
+  }
+
+  function ajustarPosicaoBarraResumo() {
+    const header = document.querySelector('header.principal');
+    if (header) barraResumo.style.top = `${header.getBoundingClientRect().height}px`;
+  }
+
+  function atualizarResumo() {
+    const marcadas = modalidades.filter((m) => document.querySelector(`[data-toggle-modalidade="${m.id}"]`)?.checked);
+
+    if (marcadas.length === 0) {
+      barraResumo.hidden = true;
+      barraResumoItens.innerHTML = '';
+      return;
+    }
+
+    barraResumo.hidden = false;
+    barraResumoItens.innerHTML = marcadas
+      .map(
+        (m) => `
+          <span class="chip-modalidade">
+            <a href="#painel-${m.id}" data-ir-para="${m.id}">${m.nome}</a>
+            <button type="button" data-remover-chip="${m.id}" aria-label="Remover ${m.nome}">×</button>
+          </span>
+        `
+      )
+      .join('');
   }
 
   function renderOpcao(m) {
@@ -337,6 +391,7 @@
       mostrarMensagem('sucesso', 'Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.');
       form.reset();
       paineis.innerHTML = '';
+      atualizarResumo();
     } catch (e) {
       mostrarMensagem('erro', 'Falha de conexão. Verifique sua internet e tente novamente.');
     } finally {

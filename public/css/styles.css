@@ -425,9 +425,84 @@ footer.principal a {
   opacity: 1;
 }
 
+/* ===== Barra de resumo (modalidades selecionadas) ===== */
+.barra-resumo {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: var(--branco);
+  border-bottom: 1px solid var(--borda);
+  box-shadow: var(--sombra);
+}
+
+.barra-resumo[hidden] {
+  display: none;
+}
+
+.barra-resumo-conteudo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+}
+
+.barra-resumo-rotulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--texto-claro);
+  white-space: nowrap;
+}
+
+.barra-resumo-itens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-modalidade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--verde-suave);
+  border: 1px solid var(--verde);
+  border-radius: 999px;
+  padding: 4px 6px 4px 12px;
+  font-size: 0.82rem;
+}
+
+.chip-modalidade a {
+  color: var(--verde-escuro);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chip-modalidade a:hover {
+  text-decoration: underline;
+}
+
+.chip-modalidade button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--vinho);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.chip-modalidade button:hover {
+  background: rgba(155, 39, 67, 0.12);
+}
+
 /* ===== Formulário de inscrição ===== */
 .pagina-form {
   padding: 40px 0 80px;
+}
+
+.painel-modalidade {
+  scroll-margin-top: 160px;
 }
 
 .cabecalho-form h1 {
