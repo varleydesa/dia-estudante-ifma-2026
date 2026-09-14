@@ -3,6 +3,7 @@
   const form = document.getElementById('form-inscricao');
   const listaIndividuais = document.getElementById('lista-individuais');
   const listaEquipes = document.getElementById('lista-equipes');
+  const listaOficinas = document.getElementById('lista-oficinas');
   const etapasDetalheContainer = document.getElementById('etapas-detalhe');
   const resumoRevisao = document.getElementById('resumo-revisao');
   const progressoPreenchido = document.getElementById('progresso-preenchido');
@@ -29,8 +30,12 @@
       return;
     }
 
-    listaIndividuais.innerHTML = modalidades.filter((m) => m.tipo === 'individual').map(renderOpcaoModalidade).join('');
+    listaIndividuais.innerHTML = modalidades
+      .filter((m) => m.tipo === 'individual' && m.secao !== 'oficinas')
+      .map(renderOpcaoModalidade)
+      .join('');
     listaEquipes.innerHTML = modalidades.filter((m) => m.tipo === 'equipe').map(renderOpcaoModalidade).join('');
+    listaOficinas.innerHTML = modalidades.filter((m) => m.secao === 'oficinas').map(renderOpcaoModalidade).join('');
 
     btnVoltar.addEventListener('click', () => irParaEtapa(etapaAtual - 1));
     btnAvancar.addEventListener('click', aoAvancar);
