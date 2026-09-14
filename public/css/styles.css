@@ -945,6 +945,33 @@ tr.linha-detalhe td:nth-child(2) {
   width: 20px;
 }
 
+tr.linha-cartao td {
+  position: static;
+  background: var(--verde-suave);
+  padding: 14px 20px;
+}
+
+.cartao-detalhe {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 24px;
+}
+
+.item-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  word-break: break-word;
+}
+
+.rotulo-detalhe {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-claro);
+}
+
 .overlay-modal {
   position: fixed;
   inset: 0;

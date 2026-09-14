@@ -22,6 +22,7 @@
   let inscricoes = [];
   let modalidades = [];
   const gruposExpandidos = new Set();
+  const detalhesExpandidos = new Set();
   let idParaExcluir = null;
 
   init();
@@ -141,6 +142,39 @@
     return classes.length ? ` class="${classes.join(' ')}"` : '';
   }
 
+  function botaoDetalhe(chave, expandido) {
+    return `<button type="button" class="botao-expandir" data-toggle-detalhe="${chave}" aria-expanded="${expandido}" title="Ver detalhes">${expandido ? '▾' : '▸'}</button>`;
+  }
+
+  // Cartão com todos os campos empilhados verticalmente, para conferir uma
+  // inscrição sem precisar rolar a tabela para o lado.
+  function linhaCartaoDetalhe(inscricao, p) {
+    const campos = [
+      ['Status', inscricao.status === 'cancelada' ? 'Cancelada' : 'Ativa'],
+      ['Modalidade', inscricao.modalidade_nome],
+      ['Nível', inscricao.nivel || '—'],
+      ['Categoria', inscricao.categoria || '—'],
+      ['Nome', p.nome_completo],
+      ['Papel', papelDe(p)],
+      ['Time', inscricao.nome_equipe || '—'],
+      ['Matrícula', p.matricula || '—'],
+      ['Curso', p.curso || '—'],
+      ['Telefone', p.telefone || '—'],
+      ['E-mail', p.email || '—'],
+      ['Provas', inscricao.provas ? inscricao.provas.join(', ') : '—'],
+      ['Inscrito em', inscricao.criado_em],
+    ];
+    return `
+      <tr class="linha-cartao">
+        <td colspan="16">
+          <div class="cartao-detalhe">
+            ${campos.map(([rotulo, valor]) => `<div class="item-detalhe"><span class="rotulo-detalhe">${rotulo}</span><span>${valor}</span></div>`).join('')}
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
   // Salvaguarda: uma inscrição sem nenhum participante não deveria existir,
   // mas se acontecer (ex: inconsistência de dados), mostra uma linha própria
   // em vez de travar a tabela inteira tentando ler um participante inexistente.
@@ -168,10 +202,12 @@
   }
 
   function linhaParticipante(inscricao, p, { indentada } = {}) {
-    return `
+    const chave = `p${p.id}`;
+    const expandido = detalhesExpandidos.has(chave);
+    const linha = `
       <tr${classeLinha(inscricao, indentada ? 'linha-detalhe' : '')}>
         <td>${indentada ? '' : inscricao.id}</td>
-        <td></td>
+        <td>${botaoDetalhe(chave, expandido)}</td>
         <td>${indentada ? '' : statusBadge(inscricao)}</td>
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
@@ -188,6 +224,7 @@
         <td>${indentada ? '' : `${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}`}</td>
       </tr>
     `;
+    return expandido ? linha + linhaCartaoDetalhe(inscricao, p) : linha;
   }
 
   function renderTabela() {
@@ -303,6 +340,18 @@
         alert('Não foi possível atualizar o status. Tente novamente.');
         botaoStatusClicado.disabled = false;
       }
+      return;
+    }
+
+    const botaoDetalheClicado = evento.target.closest('[data-toggle-detalhe]');
+    if (botaoDetalheClicado) {
+      const chave = botaoDetalheClicado.dataset.toggleDetalhe;
+      if (detalhesExpandidos.has(chave)) {
+        detalhesExpandidos.delete(chave);
+      } else {
+        detalhesExpandidos.add(chave);
+      }
+      renderTabela();
       return;
     }
 
