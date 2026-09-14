@@ -972,7 +972,8 @@ tr.linha-cartao td {
   flex-direction: column;
   gap: 2px;
   font-size: 0.85rem;
-  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .rotulo-detalhe {
