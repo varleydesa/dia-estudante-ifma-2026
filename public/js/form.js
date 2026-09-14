@@ -42,12 +42,13 @@
 
   function renderOpcaoModalidade(m) {
     return `
-      <label class="opcao-modalidade">
+      <label class="opcao-modalidade${m.lotado ? ' lotado' : ''}">
         <div class="cabecalho-opcao">
-          <input type="checkbox" data-toggle-modalidade="${m.id}" />
+          <input type="checkbox" data-toggle-modalidade="${m.id}" ${m.lotado ? 'disabled' : ''} />
           ${m.nome}
         </div>
         <span class="previsao-mini">Categoria: ${m.categorias.join(' ou ')} · Previsão: ${m.previsao}</span>
+        ${m.lotado ? '<span class="aviso-lotado">Vagas preenchidas</span>' : ''}
       </label>
     `;
   }

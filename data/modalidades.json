@@ -84,5 +84,23 @@
     "minAtletas": 10,
     "maxAtletas": 10,
     "previsao": "Sábado à tarde"
+  },
+  {
+    "id": "oficina_jiujitsu",
+    "nome": "Oficina de Jiu-Jitsu",
+    "tipo": "individual",
+    "temNivel": false,
+    "categorias": ["Único"],
+    "limiteVagas": 30,
+    "previsao": "Dia e horário a confirmar"
+  },
+  {
+    "id": "oficina_cubo_magico",
+    "nome": "Oficina de Cubo Mágico",
+    "tipo": "individual",
+    "temNivel": false,
+    "categorias": ["Único"],
+    "limiteVagas": 30,
+    "previsao": "Dia e horário a confirmar"
   }
 ]

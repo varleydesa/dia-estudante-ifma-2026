@@ -611,6 +611,26 @@ fieldset.secao-form legend {
   margin-left: 28px;
 }
 
+.opcao-modalidade.lotado {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--bg);
+}
+
+.opcao-modalidade.lotado:has(input:checked) {
+  border-color: var(--borda);
+  background: var(--bg);
+}
+
+.opcao-modalidade .aviso-lotado {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--erro);
+  margin-top: 4px;
+  margin-left: 28px;
+}
+
 .subgrupo-titulo {
   font-size: 0.78rem;
   text-transform: uppercase;

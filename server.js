@@ -37,9 +37,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Envolve rotas async para encaminhar erros ao middleware de erro do Express.
 const rota = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
-app.get('/api/modalidades', (req, res) => {
-  res.json(modalidades);
-});
+async function contarInscricoesPorModalidade() {
+  const { rows } = await db.execute(
+    'SELECT modalidade_id, COUNT(*) AS total FROM inscricoes GROUP BY modalidade_id'
+  );
+  const contagens = new Map();
+  for (const linha of rows) contagens.set(linha.modalidade_id, Number(linha.total));
+  return contagens;
+}
+
+app.get(
+  '/api/modalidades',
+  rota(async (req, res) => {
+    const contagens = await contarInscricoesPorModalidade();
+    const resposta = modalidades.map((m) => {
+      if (!m.limiteVagas) return m;
+      const vagasOcupadas = contagens.get(m.id) || 0;
+      return { ...m, vagasOcupadas, lotado: vagasOcupadas >= m.limiteVagas };
+    });
+    res.json(resposta);
+  })
+);
 
 function erro(res, status, mensagem) {
   return res.status(status).json({ erro: mensagem });
@@ -207,6 +225,18 @@ app.post(
     try {
       const idsGerados = [];
       for (const registro of registros) {
+        const modalidade = modalidadesPorId.get(registro.modalidade_id);
+        if (modalidade.limiteVagas) {
+          const { rows } = await tx.execute({
+            sql: 'SELECT COUNT(*) AS total FROM inscricoes WHERE modalidade_id = ?',
+            args: [modalidade.id],
+          });
+          if (Number(rows[0].total) >= modalidade.limiteVagas) {
+            await tx.rollback();
+            return erro(res, 409, `As vagas de "${modalidade.nome}" já foram preenchidas.`);
+          }
+        }
+
         const resultado = await tx.execute({
           sql: `INSERT INTO inscricoes (modalidade_id, modalidade_nome, tipo, nivel, categoria, nome_equipe, provas, observacoes)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
