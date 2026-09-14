@@ -947,13 +947,23 @@ tr.linha-detalhe td:nth-child(2) {
 
 tr.linha-cartao td {
   position: static;
-  background: var(--verde-suave);
-  padding: 14px 20px;
+  background: transparent;
+  padding: 0;
 }
 
+/* Fica "grudado" à esquerda da área visível da tabela (mesma referência de
+   rolagem da coluna Ações), com largura limitada à tela — para exibir os
+   dados sem exigir rolagem horizontal, mesmo a linha sendo muito larga. */
 .cartao-detalhe {
+  position: sticky;
+  left: 16px;
+  width: min(900px, calc(100vw - 64px));
+  box-sizing: border-box;
+  background: var(--verde-suave);
+  border-radius: 10px;
+  padding: 14px 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px 24px;
 }
 
