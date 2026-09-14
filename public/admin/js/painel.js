@@ -76,7 +76,8 @@
       `<div class="cartao-resumo"><span class="numero">${totalParticipantes}</span><span class="rotulo-resumo">Participantes no total</span></div>`,
     ];
 
-    for (const [nome, qtd] of contagemPorModalidade) {
+    const porModalidadeOrdenado = Array.from(contagemPorModalidade).sort((a, b) => b[1] - a[1]);
+    for (const [nome, qtd] of porModalidadeOrdenado) {
       cartoes.push(`<div class="cartao-resumo"><span class="numero">${qtd}</span><span class="rotulo-resumo">${nome}</span></div>`);
     }
 
