@@ -61,15 +61,17 @@
   }
 
   function renderResumo() {
+    const ativas = inscricoes.filter((i) => i.status !== 'cancelada');
+
     const contagemPorModalidade = new Map();
-    for (const i of inscricoes) {
+    for (const i of ativas) {
       contagemPorModalidade.set(i.modalidade_nome, (contagemPorModalidade.get(i.modalidade_nome) || 0) + 1);
     }
 
-    const totalParticipantes = inscricoes.reduce((soma, i) => soma + i.participantes.length, 0);
+    const totalParticipantes = ativas.reduce((soma, i) => soma + i.participantes.length, 0);
 
     const cartoes = [
-      `<div class="cartao-resumo"><span class="numero">${inscricoes.length}</span><span class="rotulo-resumo">Inscrições registradas</span></div>`,
+      `<div class="cartao-resumo"><span class="numero">${ativas.length}</span><span class="rotulo-resumo">Inscrições registradas</span></div>`,
       `<div class="cartao-resumo"><span class="numero">${totalParticipantes}</span><span class="rotulo-resumo">Participantes no total</span></div>`,
     ];
 
@@ -123,14 +125,31 @@
     return `<button type="button" class="btn btn-remover btn-pequeno" data-excluir="${inscricao.id}" data-descricao="${descricao.replace(/"/g, '&quot;')}">Excluir</button>`;
   }
 
+  function botaoStatus(inscricao) {
+    const cancelada = inscricao.status === 'cancelada';
+    const proximo = cancelada ? 'ativa' : 'cancelada';
+    const rotulo = cancelada ? 'Reativar' : 'Cancelar';
+    return `<button type="button" class="btn btn-secundario btn-pequeno" data-status-toggle="${inscricao.id}" data-proximo-status="${proximo}">${rotulo}</button>`;
+  }
+
+  function statusBadge(inscricao) {
+    return inscricao.status === 'cancelada' ? '<span class="emblema cancelada">Cancelada</span>' : 'Ativa';
+  }
+
+  function classeLinha(inscricao, extra = '') {
+    const classes = [extra, inscricao.status === 'cancelada' ? 'linha-cancelada' : ''].filter(Boolean);
+    return classes.length ? ` class="${classes.join(' ')}"` : '';
+  }
+
   // Salvaguarda: uma inscrição sem nenhum participante não deveria existir,
   // mas se acontecer (ex: inconsistência de dados), mostra uma linha própria
   // em vez de travar a tabela inteira tentando ler um participante inexistente.
   function linhaSemParticipantes(inscricao) {
     return `
-      <tr>
+      <tr${classeLinha(inscricao)}>
         <td>${inscricao.id}</td>
         <td></td>
+        <td>${statusBadge(inscricao)}</td>
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
         <td>${inscricao.categoria || '—'}</td>
@@ -143,16 +162,17 @@
         <td>—</td>
         <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
-        <td>${botaoExcluir(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}</td>
+        <td>${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}</td>
       </tr>
     `;
   }
 
   function linhaParticipante(inscricao, p, { indentada } = {}) {
     return `
-      <tr class="${indentada ? 'linha-detalhe' : ''}">
+      <tr${classeLinha(inscricao, indentada ? 'linha-detalhe' : '')}>
         <td>${indentada ? '' : inscricao.id}</td>
         <td></td>
+        <td>${indentada ? '' : statusBadge(inscricao)}</td>
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
         <td>${inscricao.categoria || '—'}</td>
@@ -165,7 +185,7 @@
         <td>${p.email || '—'}</td>
         <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
-        <td>${indentada ? '' : botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}</td>
+        <td>${indentada ? '' : `${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}`}</td>
       </tr>
     `;
   }
@@ -198,9 +218,10 @@
       const capitao = inscricao.participantes.find((p) => p.capitao) || inscricao.participantes[0];
 
       linhas.push(`
-        <tr class="linha-grupo" data-toggle-grupo="${inscricao.id}">
+        <tr${classeLinha(inscricao, 'linha-grupo')} data-toggle-grupo="${inscricao.id}">
           <td>${inscricao.id}</td>
           <td><button type="button" class="botao-expandir" aria-expanded="${expandido}">${expandido ? '▾' : '▸'}</button></td>
+          <td>${statusBadge(inscricao)}</td>
           <td>${inscricao.modalidade_nome}</td>
           <td>${inscricao.nivel || '—'}</td>
           <td>${inscricao.categoria || '—'}</td>
@@ -213,7 +234,7 @@
           <td>—</td>
           <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
           <td>${inscricao.criado_em}</td>
-          <td>${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
+          <td>${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
         </tr>
       `);
 
@@ -255,10 +276,33 @@
       : `Lista completa — gerado em ${new Date().toLocaleString('pt-BR')}`;
   }
 
-  corpoTabela.addEventListener('click', (evento) => {
+  corpoTabela.addEventListener('click', async (evento) => {
     const botaoExcluirClicado = evento.target.closest('[data-excluir]');
     if (botaoExcluirClicado) {
       abrirModalExclusao(Number(botaoExcluirClicado.dataset.excluir), botaoExcluirClicado.dataset.descricao);
+      return;
+    }
+
+    const botaoStatusClicado = evento.target.closest('[data-status-toggle]');
+    if (botaoStatusClicado) {
+      const id = Number(botaoStatusClicado.dataset.statusToggle);
+      const novoStatus = botaoStatusClicado.dataset.proximoStatus;
+      botaoStatusClicado.disabled = true;
+      try {
+        const resp = await fetch(`/api/admin/inscricoes/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: novoStatus }),
+        });
+        if (!resp.ok) throw new Error('Falha ao atualizar status.');
+        const inscricao = inscricoes.find((i) => i.id === id);
+        if (inscricao) inscricao.status = novoStatus;
+        renderResumo();
+        renderTabela();
+      } catch (e) {
+        alert('Não foi possível atualizar o status. Tente novamente.');
+        botaoStatusClicado.disabled = false;
+      }
       return;
     }
 

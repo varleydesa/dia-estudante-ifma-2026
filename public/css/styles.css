@@ -907,6 +907,15 @@ tr.linha-detalhe td:last-child {
   color: var(--texto-claro);
 }
 
+.emblema.cancelada {
+  background: #f6dede;
+  color: var(--erro);
+}
+
+table.tabela-inscricoes tr.linha-cancelada {
+  opacity: 0.55;
+}
+
 tr.linha-grupo {
   cursor: pointer;
   background: var(--verde-suave);

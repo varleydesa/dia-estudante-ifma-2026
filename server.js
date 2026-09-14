@@ -366,13 +366,35 @@ app.delete(
   })
 );
 
+app.patch(
+  '/api/admin/inscricoes/:id/status',
+  auth.exigirLogin,
+  rota(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return erro(res, 400, 'ID inválido.');
+    }
+
+    const { status } = req.body || {};
+    if (!['ativa', 'cancelada'].includes(status)) {
+      return erro(res, 400, 'Status inválido.');
+    }
+
+    const resultado = await db.execute({ sql: 'UPDATE inscricoes SET status = ? WHERE id = ?', args: [status, id] });
+    if (resultado.rowsAffected === 0) {
+      return erro(res, 404, 'Inscrição não encontrada.');
+    }
+    res.json({ ok: true });
+  })
+);
+
 // ---------- Consulta das inscrições (protegida) ----------
 
 async function carregarInscricoes() {
   const { rows } = await db.execute(`
     SELECT
       i.id, i.modalidade_id, i.modalidade_nome, i.tipo, i.nivel, i.categoria,
-      i.nome_equipe, i.provas, i.observacoes, i.criado_em,
+      i.nome_equipe, i.provas, i.observacoes, i.status, i.criado_em,
       p.id AS participante_id, p.nome_completo, p.matricula, p.curso,
       p.telefone AS participante_telefone, p.email AS participante_email,
       p.capitao, p.titular
@@ -394,6 +416,7 @@ async function carregarInscricoes() {
         nome_equipe: linha.nome_equipe,
         provas: linha.provas ? JSON.parse(linha.provas) : null,
         observacoes: linha.observacoes,
+        status: linha.status,
         criado_em: linha.criado_em,
         participantes: [],
       });
@@ -448,13 +471,14 @@ app.get(
     };
 
     const linhas = [
-      ['Modalidade', 'Tipo', 'Nível', 'Categoria', 'Time', 'Provas', 'Capitão', 'Titular/Reserva', 'Nome', 'Matrícula', 'Curso', 'Telefone', 'E-mail', 'Inscrito em'],
+      ['Status', 'Modalidade', 'Tipo', 'Nível', 'Categoria', 'Time', 'Provas', 'Capitão', 'Titular/Reserva', 'Nome', 'Matrícula', 'Curso', 'Telefone', 'E-mail', 'Inscrito em'],
     ];
 
     const inscricoes = filtrarInscricoes(await carregarInscricoes(), filtros);
     for (const inscricao of inscricoes) {
       for (const p of inscricao.participantes) {
         linhas.push([
+          inscricao.status === 'cancelada' ? 'Cancelada' : 'Ativa',
           inscricao.modalidade_nome,
           inscricao.tipo,
           inscricao.nivel || '',

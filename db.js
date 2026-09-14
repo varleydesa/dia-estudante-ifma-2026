@@ -60,6 +60,17 @@ async function migrarFusoHorario(tabela, colunaData, colunasCopiar) {
   console.log(`Tabela "${tabela}" migrada para horário de Brasília (${colunaData}).`);
 }
 
+// Adiciona a coluna "status" (ativa/cancelada) a bancos criados antes dela existir.
+async function migrarStatusInscricoes() {
+  const { rows } = await db.execute("PRAGMA table_info(inscricoes)");
+  if (rows.length === 0) return; // tabela ainda não existe (banco novo) — já nasce com a coluna
+  const jaTemStatus = rows.some((c) => c.name === 'status');
+  if (jaTemStatus) return;
+
+  await db.execute("ALTER TABLE inscricoes ADD COLUMN status TEXT NOT NULL DEFAULT 'ativa'");
+  console.log('Coluna "status" adicionada à tabela "inscricoes".');
+}
+
 async function iniciar() {
   // O Turso mantém "foreign_keys" ligado por padrão. Migrações que recriam
   // tabelas (DROP + RENAME) disparariam ON DELETE CASCADE contra as linhas
@@ -73,6 +84,7 @@ async function iniciar() {
     'id, modalidade_id, modalidade_nome, tipo, nivel, categoria, nome_equipe, provas, observacoes, criado_em'
   );
   await db.execute('PRAGMA foreign_keys = ON');
+  await migrarStatusInscricoes();
 
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
@@ -85,6 +97,7 @@ async function iniciar() {
       nome_equipe TEXT,
       provas TEXT,
       observacoes TEXT,
+      status TEXT NOT NULL DEFAULT 'ativa',
       criado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
 
