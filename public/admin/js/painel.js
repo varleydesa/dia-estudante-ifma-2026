@@ -134,8 +134,14 @@
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
         <td>${inscricao.categoria || '—'}</td>
+        <td>—</td>
+        <td style="color:var(--erro)">Sem dados de participante registrados.</td>
         <td>${inscricao.nome_equipe || '—'}</td>
-        <td colspan="6" style="color:var(--erro)">Sem dados de participante registrados.</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
         <td>${botaoExcluir(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}</td>
       </tr>
@@ -150,9 +156,9 @@
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
         <td>${inscricao.categoria || '—'}</td>
-        <td>${inscricao.nome_equipe || '—'}</td>
-        <td>${papelDe(p)}</td>
         <td>${p.nome_completo}</td>
+        <td>${papelDe(p)}</td>
+        <td>${inscricao.nome_equipe || '—'}</td>
         <td>${p.matricula || '—'}</td>
         <td>${p.curso || '—'}</td>
         <td>${p.telefone || '—'}</td>
@@ -198,9 +204,9 @@
           <td>${inscricao.modalidade_nome}</td>
           <td>${inscricao.nivel || '—'}</td>
           <td>${inscricao.categoria || '—'}</td>
-          <td>${inscricao.nome_equipe || '—'}</td>
-          <td>${inscricao.participantes.length} integrante(s)</td>
           <td>${capitao.nome_completo} <span class="emblema capitao">Capitão(ã)</span></td>
+          <td>${inscricao.participantes.length} integrante(s)</td>
+          <td>${inscricao.nome_equipe || '—'}</td>
           <td>—</td>
           <td>—</td>
           <td>—</td>
