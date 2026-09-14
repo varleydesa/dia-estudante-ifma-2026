@@ -699,6 +699,18 @@ fieldset.secao-form legend {
   border: 1.5px solid var(--erro);
 }
 
+.mensagem-envio.aviso {
+  display: block;
+  background: #fff4e0;
+  color: #8a5a00;
+  border: 1.5px solid #e0ac3f;
+}
+
+.grade-campos .mensagem-envio {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
 .acoes-pos-envio {
   text-align: center;
   margin-bottom: 20px;

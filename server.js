@@ -39,7 +39,7 @@ const rota = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
 async function contarInscricoesPorModalidade() {
   const { rows } = await db.execute(
-    'SELECT modalidade_id, COUNT(*) AS total FROM inscricoes GROUP BY modalidade_id'
+    "SELECT modalidade_id, COUNT(*) AS total FROM inscricoes WHERE status != 'cancelada' GROUP BY modalidade_id"
   );
   const contagens = new Map();
   for (const linha of rows) contagens.set(linha.modalidade_id, Number(linha.total));
@@ -233,12 +233,30 @@ app.post(
 
     const tx = await db.transaction('write');
     try {
+      // Uma nova inscrição completa substitui qualquer inscrição anterior
+      // dessa mesma pessoa (identificada pela matrícula) que ainda esteja
+      // ativa — o aviso disso já foi mostrado ao aluno na primeira etapa.
+      const { rows: anteriores } = await tx.execute({
+        sql: `
+          SELECT DISTINCT i.id
+          FROM inscricoes i
+          JOIN participantes p ON p.inscricao_id = i.id
+          WHERE i.status != 'cancelada'
+            AND LOWER(TRIM(p.matricula)) = LOWER(?)
+            AND (p.capitao = 1 OR i.tipo = 'individual')
+        `,
+        args: [responsavel.matricula.trim()],
+      });
+      for (const anterior of anteriores) {
+        await tx.execute({ sql: "UPDATE inscricoes SET status = 'cancelada' WHERE id = ?", args: [anterior.id] });
+      }
+
       const idsGerados = [];
       for (const registro of registros) {
         const modalidade = modalidadesPorId.get(registro.modalidade_id);
         if (modalidade.limiteVagas) {
           const { rows } = await tx.execute({
-            sql: 'SELECT COUNT(*) AS total FROM inscricoes WHERE modalidade_id = ?',
+            sql: "SELECT COUNT(*) AS total FROM inscricoes WHERE modalidade_id = ? AND status != 'cancelada'",
             args: [modalidade.id],
           });
           if (Number(rows[0].total) >= modalidade.limiteVagas) {
@@ -273,11 +291,33 @@ app.post(
         }
       }
       await tx.commit();
-      res.status(201).json({ ok: true, ids: idsGerados });
+      res.status(201).json({ ok: true, ids: idsGerados, canceladasAnteriores: anteriores.length });
     } catch (e) {
       await tx.rollback();
       throw e;
     }
+  })
+);
+
+app.get(
+  '/api/inscricoes/verificar-matricula',
+  rota(async (req, res) => {
+    const matricula = typeof req.query.matricula === 'string' ? req.query.matricula.trim() : '';
+    if (!matricula) return res.json({ existe: false, modalidades: [] });
+
+    const { rows } = await db.execute({
+      sql: `
+        SELECT DISTINCT i.modalidade_nome
+        FROM inscricoes i
+        JOIN participantes p ON p.inscricao_id = i.id
+        WHERE i.status != 'cancelada'
+          AND LOWER(TRIM(p.matricula)) = LOWER(?)
+          AND (p.capitao = 1 OR i.tipo = 'individual')
+      `,
+      args: [matricula],
+    });
+
+    res.json({ existe: rows.length > 0, modalidades: rows.map((r) => r.modalidade_nome) });
   })
 );
 

@@ -14,11 +14,14 @@
   const btnEnviar = document.getElementById('btn-enviar');
   const progressoEtapas = document.getElementById('progresso-etapas');
   const acoesPosEnvio = document.getElementById('acoes-pos-envio');
+  const respMatricula = document.getElementById('resp-matricula');
+  const avisoDuplicidade = document.getElementById('aviso-duplicidade');
 
   let modalidades = [];
   const contadorAtletaPorModalidade = {};
   let sequenciaEtapas = [{ tipo: 'dados' }, { tipo: 'modalidades' }, { tipo: 'revisao' }];
   let etapaAtual = 0;
+  let duplicidade = { existe: false, modalidades: [] };
 
   init();
 
@@ -41,6 +44,7 @@
     btnAvancar.addEventListener('click', aoAvancar);
     btnEnviar.addEventListener('click', aoEnviar);
     form.addEventListener('submit', (evento) => evento.preventDefault());
+    respMatricula.addEventListener('blur', verificarDuplicidade);
 
     renderEtapaAtual();
   }
@@ -109,6 +113,14 @@
     if (etapa.tipo === 'dados') {
       const erroMsg = validarDados();
       if (erroMsg) return mostrarMensagem('erro', erroMsg);
+      if (duplicidade.existe) {
+        const confirmou = window.confirm(
+          `Você já possui inscrição ativa em: ${duplicidade.modalidades.join(', ')}.\n\n` +
+            'Se continuar e enviar esta nova inscrição, a(s) inscrição(ões) anterior(es) será(ão) cancelada(s) automaticamente.\n\n' +
+            'Deseja continuar?'
+        );
+        if (!confirmou) return;
+      }
     } else if (etapa.tipo === 'modalidades') {
       const marcadas = modalidadesMarcadas();
       if (marcadas.length === 0) return mostrarMensagem('erro', 'Marque ao menos uma modalidade para se inscrever.');
@@ -325,6 +337,28 @@
     };
   }
 
+  async function verificarDuplicidade() {
+    const matricula = respMatricula.value.trim();
+    duplicidade = { existe: false, modalidades: [] };
+    avisoDuplicidade.hidden = true;
+
+    if (!matricula) return;
+
+    try {
+      const resp = await fetch(`/api/inscricoes/verificar-matricula?matricula=${encodeURIComponent(matricula)}`);
+      if (!resp.ok) return;
+      const dados = await resp.json();
+      if (!dados.existe) return;
+
+      duplicidade = dados;
+      avisoDuplicidade.textContent = `Você já possui inscrição ativa em: ${dados.modalidades.join(', ')}. Se enviar uma nova inscrição, a(s) anterior(es) será(ão) cancelada(s) automaticamente.`;
+      avisoDuplicidade.hidden = false;
+    } catch (e) {
+      // Falha na verificação não deve travar o preenchimento; a checagem
+      // definitiva acontece no servidor no momento do envio.
+    }
+  }
+
   function validarDados() {
     const r = coletarResponsavel();
     if (!r.nome_completo || !r.matricula || !r.curso || !r.telefone || !r.email) {
@@ -510,7 +544,13 @@
       form.hidden = true;
       progressoEtapas.hidden = true;
       acoesPosEnvio.hidden = false;
-      mostrarMensagem('sucesso', 'Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.');
+      const avisoCancelamento = dados.canceladasAnteriores
+        ? ` Sua(s) inscrição(ões) anterior(es) foi(ram) cancelada(s) automaticamente.`
+        : '';
+      mostrarMensagem(
+        'sucesso',
+        `Inscrição enviada com sucesso! Fique atento ao congresso técnico da sua modalidade.${avisoCancelamento}`
+      );
     } catch (e) {
       mostrarMensagem('erro', 'Falha de conexão. Verifique sua internet e tente novamente.');
     } finally {
