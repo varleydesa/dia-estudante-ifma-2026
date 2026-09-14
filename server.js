@@ -95,7 +95,7 @@ function validarInscricao(item, responsavel) {
     provas = JSON.stringify(item.provas);
   }
 
-  const nivel = modalidade.temNivel ? responsavel.nivel : null;
+  const nivel = responsavel.nivel;
 
   const participantes = [];
   let nomeEquipe = null;
