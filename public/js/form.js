@@ -370,6 +370,17 @@
         atletas.push(atleta);
       }
 
+      const responsavel = coletarResponsavel();
+      const nomesNormalizados = [responsavel.nome_completo, ...atletas.map((a) => a.nome_completo)].map((n) =>
+        n.trim().toLowerCase()
+      );
+      if (nomesNormalizados.includes(nomeEquipe.toLowerCase())) {
+        return { erro: `Em "${m.nome}", o nome da equipe não pode ser igual ao nome de um integrante.` };
+      }
+      if (nomesNormalizados.some((n, i) => nomesNormalizados.indexOf(n) !== i)) {
+        return { erro: `Em "${m.nome}", há integrantes com o mesmo nome. Cada integrante deve ser uma pessoa diferente.` };
+      }
+
       const total = atletas.length + 1;
       if (m.minAtletas && total < m.minAtletas) {
         return { erro: `"${m.nome}" exige no mínimo ${m.minAtletas} integrantes (você tem ${total}).` };

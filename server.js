@@ -152,6 +152,16 @@ function validarInscricao(item, responsavel) {
       });
     }
 
+    const nomesNormalizados = participantes.map((p) => p.nome_completo.trim().toLowerCase());
+    const nomeEquipeNormalizado = nomeEquipe.toLowerCase();
+    if (nomesNormalizados.includes(nomeEquipeNormalizado)) {
+      return { erro: `Em ${modalidade.nome}, o nome da equipe não pode ser igual ao nome de um integrante.` };
+    }
+    const nomeDuplicado = nomesNormalizados.some((n, i) => nomesNormalizados.indexOf(n) !== i);
+    if (nomeDuplicado) {
+      return { erro: `Em ${modalidade.nome}, há integrantes com o mesmo nome. Cada integrante deve ser uma pessoa diferente.` };
+    }
+
     const total = participantes.length;
     if (modalidade.minAtletas && total < modalidade.minAtletas) {
       return { erro: `${modalidade.nome} exige no mínimo ${modalidade.minAtletas} integrantes (informado: ${total}).` };
