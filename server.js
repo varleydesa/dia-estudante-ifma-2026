@@ -254,6 +254,28 @@ app.post(
       const idsGerados = [];
       for (const registro of registros) {
         const modalidade = modalidadesPorId.get(registro.modalidade_id);
+
+        if (registro.tipo === 'equipe') {
+          const matriculas = registro.participantes.map((p) => p.matricula.trim().toLowerCase());
+          const placeholders = matriculas.map(() => '?').join(',');
+          const { rows: conflitos } = await tx.execute({
+            sql: `
+              SELECT DISTINCT p.nome_completo, i.nome_equipe
+              FROM inscricoes i
+              JOIN participantes p ON p.inscricao_id = i.id
+              WHERE i.modalidade_id = ?
+                AND i.status != 'cancelada'
+                AND LOWER(TRIM(p.matricula)) IN (${placeholders})
+            `,
+            args: [registro.modalidade_id, ...matriculas],
+          });
+          if (conflitos.length > 0) {
+            await tx.rollback();
+            const nomes = conflitos.map((c) => `${c.nome_completo} (já no time "${c.nome_equipe}")`).join(', ');
+            return erro(res, 409, `${modalidade.nome}: já existe integrante cadastrado em outro time ativo — ${nomes}.`);
+          }
+        }
+
         if (modalidade.limiteVagas) {
           const { rows } = await tx.execute({
             sql: "SELECT COUNT(*) AS total FROM inscricoes WHERE modalidade_id = ? AND status != 'cancelada'",
