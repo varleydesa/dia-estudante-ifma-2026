@@ -1,10 +1,20 @@
 (async function () {
-  const grade = document.getElementById('grade-modalidades');
+  const carregando = document.getElementById('modalidades-carregando');
+  const gradeIndividuais = document.getElementById('grade-individuais');
+  const gradeEquipes = document.getElementById('grade-equipes');
+  const gradeOficinas = document.getElementById('grade-oficinas');
+
   try {
     const modalidades = await window.Modalidades.carregar();
-    grade.innerHTML = modalidades.map(renderCard).join('');
+    gradeIndividuais.innerHTML = modalidades
+      .filter((m) => m.tipo === 'individual' && m.secao !== 'oficinas')
+      .map(renderCard)
+      .join('');
+    gradeEquipes.innerHTML = modalidades.filter((m) => m.tipo === 'equipe').map(renderCard).join('');
+    gradeOficinas.innerHTML = modalidades.filter((m) => m.secao === 'oficinas').map(renderCard).join('');
+    carregando.hidden = true;
   } catch (e) {
-    grade.innerHTML = '<p>Não foi possível carregar as modalidades agora. Recarregue a página.</p>';
+    carregando.innerHTML = '<p>Não foi possível carregar as modalidades agora. Recarregue a página.</p>';
   }
 
   function renderCard(m) {
@@ -23,9 +33,12 @@
     }
     if (m.multiProva) detalhes.push('Pode escolher mais de uma prova');
 
+    const tipoClasse = m.secao === 'oficinas' ? 'oficina' : m.tipo;
+    const tipoTexto = m.secao === 'oficinas' ? 'Oficina/Exposição' : m.tipo === 'equipe' ? 'Modalidade coletiva' : 'Modalidade individual';
+
     return `
       <article class="cartao-modalidade">
-        <span class="etiqueta-tipo ${m.tipo}">${m.tipo === 'equipe' ? 'Modalidade coletiva' : 'Modalidade individual'}</span>
+        <span class="etiqueta-tipo ${tipoClasse}">${tipoTexto}</span>
         <h3>${m.nome}</h3>
         <ul>${detalhes.map((d) => `<li>${d}</li>`).join('')}</ul>
         <span class="previsao">Previsão: ${m.previsao}</span>
