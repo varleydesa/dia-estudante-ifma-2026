@@ -120,7 +120,7 @@ function validarInscricao(item, responsavel) {
 
   if (modalidade.tipo === 'equipe') {
     if (!textoValido(item.nome_equipe, 100)) {
-      return { erro: `Informe o nome da equipe para ${modalidade.nome}.` };
+      return { erro: `Informe o nome do time para ${modalidade.nome}.` };
     }
     nomeEquipe = item.nome_equipe.trim();
 
@@ -155,7 +155,7 @@ function validarInscricao(item, responsavel) {
     const nomesNormalizados = participantes.map((p) => p.nome_completo.trim().toLowerCase());
     const nomeEquipeNormalizado = nomeEquipe.toLowerCase();
     if (nomesNormalizados.includes(nomeEquipeNormalizado)) {
-      return { erro: `Em ${modalidade.nome}, o nome da equipe não pode ser igual ao nome de um integrante.` };
+      return { erro: `Em ${modalidade.nome}, o nome do time não pode ser igual ao nome de um integrante.` };
     }
     const nomeDuplicado = nomesNormalizados.some((n, i) => nomesNormalizados.indexOf(n) !== i);
     if (nomeDuplicado) {
@@ -448,7 +448,7 @@ app.get(
     };
 
     const linhas = [
-      ['Modalidade', 'Tipo', 'Nível', 'Categoria', 'Equipe', 'Provas', 'Capitão', 'Titular/Reserva', 'Nome', 'Matrícula', 'Curso', 'Telefone', 'E-mail', 'Inscrito em'],
+      ['Modalidade', 'Tipo', 'Nível', 'Categoria', 'Time', 'Provas', 'Capitão', 'Titular/Reserva', 'Nome', 'Matrícula', 'Curso', 'Telefone', 'E-mail', 'Inscrito em'],
     ];
 
     const inscricoes = filtrarInscricoes(await carregarInscricoes(), filtros);

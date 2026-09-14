@@ -188,12 +188,12 @@
     if (m.tipo === 'equipe') {
       partes.push(`
         <div class="campo">
-          <label for="equipe-nome-${m.id}">Nome da equipe <span class="obrigatorio">*</span></label>
+          <label for="equipe-nome-${m.id}">Nome do time <span class="obrigatorio">*</span></label>
           <input type="text" id="equipe-nome-${m.id}" maxlength="100" required />
         </div>
         <p style="font-size:0.85rem;color:var(--texto-claro)">
           Você (responsável pelos dados informados na primeira etapa) será incluído automaticamente como
-          capitão(ã) da equipe. Adicione abaixo os demais integrantes.
+          capitão(ã) do time. Adicione abaixo os demais integrantes.
         </p>
         <div id="atletas-${m.id}"></div>
         <button type="button" class="btn btn-fantasma btn-pequeno" data-add-atleta="${m.id}">+ Adicionar integrante</button>
@@ -354,7 +354,7 @@
 
     if (m.tipo === 'equipe') {
       const nomeEquipe = document.getElementById(`equipe-nome-${m.id}`).value.trim();
-      if (!nomeEquipe) return { erro: `Informe o nome da equipe em "${m.nome}".` };
+      if (!nomeEquipe) return { erro: `Informe o nome do time em "${m.nome}".` };
       item.nome_equipe = nomeEquipe;
 
       const linhas = document.querySelectorAll(`#atletas-${m.id} .linha-atleta`);
@@ -375,7 +375,7 @@
         n.trim().toLowerCase()
       );
       if (nomesNormalizados.includes(nomeEquipe.toLowerCase())) {
-        return { erro: `Em "${m.nome}", o nome da equipe não pode ser igual ao nome de um integrante.` };
+        return { erro: `Em "${m.nome}", o nome do time não pode ser igual ao nome de um integrante.` };
       }
       if (nomesNormalizados.some((n, i) => nomesNormalizados.indexOf(n) !== i)) {
         return { erro: `Em "${m.nome}", há integrantes com o mesmo nome. Cada integrante deve ser uma pessoa diferente.` };
@@ -438,7 +438,7 @@
       if (m.tipo === 'equipe') {
         const nomeEquipe = document.getElementById(`equipe-nome-${m.id}`)?.value.trim() || '—';
         const totalAtletas = document.querySelectorAll(`#atletas-${m.id} .linha-atleta`).length + 1;
-        detalhesExtras.push(`Equipe: ${nomeEquipe} · ${totalAtletas} integrante(s)`);
+        detalhesExtras.push(`Time: ${nomeEquipe} · ${totalAtletas} integrante(s)`);
       }
 
       blocos.push(`
