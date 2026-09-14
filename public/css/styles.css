@@ -995,6 +995,79 @@ tr.linha-cartao td {
   color: var(--texto-claro);
 }
 
+/* Ações da tabela: ícones lado a lado em telas largas; em telas estreitas,
+   os ícones somem e só o botão "⋮" fica visível, abrindo uma linha com as
+   ações por extenso (evita dois botões de texto espremendo a coluna). */
+.acoes-icones {
+  display: inline-flex;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.btn-icone.acoes-menu-botao {
+  display: none;
+}
+
+.btn-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--borda);
+  border-radius: 8px;
+  background: var(--branco);
+  color: var(--verde-escuro);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.btn-icone:hover {
+  background: var(--bg);
+}
+
+.btn-icone.perigo {
+  color: var(--erro);
+  border-color: var(--erro);
+}
+
+tr.linha-menu-acoes td {
+  padding: 10px 20px;
+  background: var(--bg);
+}
+
+.menu-acoes-mobile {
+  display: flex;
+  gap: 10px;
+}
+
+.item-menu-acao {
+  border: 1.5px solid var(--verde);
+  border-radius: 8px;
+  background: var(--branco);
+  color: var(--verde-escuro);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.item-menu-acao.perigo {
+  border-color: var(--erro);
+  color: var(--erro);
+}
+
+@media (max-width: 760px) {
+  .acoes-icones {
+    display: none;
+  }
+
+  .btn-icone.acoes-menu-botao {
+    display: inline-flex;
+  }
+}
+
 .overlay-modal {
   position: fixed;
   inset: 0;
@@ -1060,6 +1133,7 @@ tr.linha-cartao td {
   .rodape-form,
   footer.principal,
   .overlay-modal,
+  tr.linha-menu-acoes,
   table.tabela-inscricoes th:last-child,
   table.tabela-inscricoes td:last-child {
     display: none !important;

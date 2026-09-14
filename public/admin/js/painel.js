@@ -23,6 +23,7 @@
   let modalidades = [];
   const gruposExpandidos = new Set();
   const detalhesExpandidos = new Set();
+  const menusAcoesAbertos = new Set();
   let idParaExcluir = null;
 
   init();
@@ -123,15 +124,54 @@
     return papel || '—';
   }
 
-  function botaoExcluir(inscricao, descricao) {
-    return `<button type="button" class="btn btn-remover btn-pequeno" data-excluir="${inscricao.id}" data-descricao="${descricao.replace(/"/g, '&quot;')}">Excluir</button>`;
+  function botaoExcluirIcone(inscricao, descricao) {
+    return `<button type="button" class="btn-icone perigo" data-excluir="${inscricao.id}" data-descricao="${descricao.replace(/"/g, '&quot;')}" title="Excluir" aria-label="Excluir">✕</button>`;
   }
 
-  function botaoStatus(inscricao) {
+  function botaoExcluirTexto(inscricao, descricao) {
+    return `<button type="button" class="item-menu-acao perigo" data-excluir="${inscricao.id}" data-descricao="${descricao.replace(/"/g, '&quot;')}">Excluir</button>`;
+  }
+
+  function botaoStatusIcone(inscricao) {
     const cancelada = inscricao.status === 'cancelada';
     const proximo = cancelada ? 'ativa' : 'cancelada';
     const rotulo = cancelada ? 'Reativar' : 'Cancelar';
-    return `<button type="button" class="btn btn-secundario btn-pequeno" data-status-toggle="${inscricao.id}" data-proximo-status="${proximo}">${rotulo}</button>`;
+    const simbolo = cancelada ? '↺' : '⏸';
+    return `<button type="button" class="btn-icone" data-status-toggle="${inscricao.id}" data-proximo-status="${proximo}" title="${rotulo}" aria-label="${rotulo}">${simbolo}</button>`;
+  }
+
+  function botaoStatusTexto(inscricao) {
+    const cancelada = inscricao.status === 'cancelada';
+    const proximo = cancelada ? 'ativa' : 'cancelada';
+    const rotulo = cancelada ? 'Reativar' : 'Cancelar';
+    return `<button type="button" class="item-menu-acao" data-status-toggle="${inscricao.id}" data-proximo-status="${proximo}">${rotulo}</button>`;
+  }
+
+  // Ícones lado a lado em telas largas; em telas estreitas, some por trás de
+  // um botão "⋮" que abre uma linha abaixo com as ações por extenso.
+  function celulaAcoes(inscricao, descricao) {
+    const aberto = menusAcoesAbertos.has(inscricao.id);
+    return `
+      <div class="acoes-icones">
+        ${botaoStatusIcone(inscricao)}
+        ${botaoExcluirIcone(inscricao, descricao)}
+      </div>
+      <button type="button" class="btn-icone acoes-menu-botao" data-menu-acoes="${inscricao.id}" aria-expanded="${aberto}" title="Ações" aria-label="Ações">⋮</button>
+    `;
+  }
+
+  function linhaMenuAcoes(inscricao, descricao) {
+    if (!menusAcoesAbertos.has(inscricao.id)) return '';
+    return `
+      <tr class="linha-menu-acoes">
+        <td colspan="16">
+          <div class="menu-acoes-mobile">
+            ${botaoStatusTexto(inscricao)}
+            ${botaoExcluirTexto(inscricao, descricao)}
+          </div>
+        </td>
+      </tr>
+    `;
   }
 
   function statusBadge(inscricao) {
@@ -197,8 +237,9 @@
         <td>—</td>
         <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
-        <td>${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}</td>
+        <td>${celulaAcoes(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}</td>
       </tr>
+      ${linhaMenuAcoes(inscricao, `${inscricao.modalidade_nome} (sem participantes)`)}
     `;
   }
 
@@ -222,8 +263,9 @@
         <td>${p.email || '—'}</td>
         <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
-        <td>${indentada ? '' : `${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}`}</td>
+        <td>${indentada ? '' : celulaAcoes(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}</td>
       </tr>
+      ${!indentada ? linhaMenuAcoes(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`) : ''}
     `;
     return expandido ? linha + linhaCartaoDetalhe(inscricao, p) : linha;
   }
@@ -272,8 +314,9 @@
           <td>—</td>
           <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
           <td>${inscricao.criado_em}</td>
-          <td>${botaoStatus(inscricao)} ${botaoExcluir(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
+          <td>${celulaAcoes(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
         </tr>
+        ${linhaMenuAcoes(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}
       `);
 
       if (expandido) {
@@ -335,12 +378,25 @@
         if (!resp.ok) throw new Error('Falha ao atualizar status.');
         const inscricao = inscricoes.find((i) => i.id === id);
         if (inscricao) inscricao.status = novoStatus;
+        menusAcoesAbertos.delete(id);
         renderResumo();
         renderTabela();
       } catch (e) {
         alert('Não foi possível atualizar o status. Tente novamente.');
         botaoStatusClicado.disabled = false;
       }
+      return;
+    }
+
+    const botaoMenuAcoesClicado = evento.target.closest('[data-menu-acoes]');
+    if (botaoMenuAcoesClicado) {
+      const id = Number(botaoMenuAcoesClicado.dataset.menuAcoes);
+      if (menusAcoesAbertos.has(id)) {
+        menusAcoesAbertos.delete(id);
+      } else {
+        menusAcoesAbertos.add(id);
+      }
+      renderTabela();
       return;
     }
 
@@ -414,6 +470,7 @@
 
       inscricoes = inscricoes.filter((i) => i.id !== idParaExcluir);
       gruposExpandidos.delete(idParaExcluir);
+      menusAcoesAbertos.delete(idParaExcluir);
       fecharModalExclusao();
       renderResumo();
       renderTabela();
