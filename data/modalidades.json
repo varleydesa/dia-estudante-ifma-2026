@@ -15,15 +15,10 @@
     "categorias": ["Masculino", "Feminino"],
     "multiProva": true,
     "provas": [
-      "100m rasos",
-      "200m rasos",
-      "400m rasos",
-      "800m",
-      "1500m",
-      "Revezamento 4x100m",
-      "Salto em distância",
-      "Salto em altura",
-      "Arremesso de peso"
+      "100 metros rasos",
+      "Arremesso de peso",
+      "Lançamento de disco",
+      "Lançamento de dardo"
     ],
     "previsao": "Sábado pela manhã"
   },
