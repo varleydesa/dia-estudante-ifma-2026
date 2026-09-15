@@ -83,6 +83,18 @@ async function migrarTokenConsulta() {
   console.log('Coluna "token_consulta" adicionada à tabela "inscricoes".');
 }
 
+// Adiciona a coluna que registra se o e-mail de confirmação foi entregue
+// ("enviado"/"falhou"/NULL = nunca tentado) a bancos criados antes dela existir.
+async function migrarEmailStatus() {
+  const { rows } = await db.execute("PRAGMA table_info(inscricoes)");
+  if (rows.length === 0) return;
+  const jaTem = rows.some((c) => c.name === 'email_status');
+  if (jaTem) return;
+
+  await db.execute('ALTER TABLE inscricoes ADD COLUMN email_status TEXT');
+  console.log('Coluna "email_status" adicionada à tabela "inscricoes".');
+}
+
 async function iniciar() {
   // O Turso mantém "foreign_keys" ligado por padrão. Migrações que recriam
   // tabelas (DROP + RENAME) disparariam ON DELETE CASCADE contra as linhas
@@ -98,6 +110,7 @@ async function iniciar() {
   await db.execute('PRAGMA foreign_keys = ON');
   await migrarStatusInscricoes();
   await migrarTokenConsulta();
+  await migrarEmailStatus();
 
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
@@ -112,6 +125,7 @@ async function iniciar() {
       observacoes TEXT,
       status TEXT NOT NULL DEFAULT 'ativa',
       token_consulta TEXT,
+      email_status TEXT,
       criado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
 

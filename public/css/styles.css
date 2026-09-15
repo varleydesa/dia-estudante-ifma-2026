@@ -1010,6 +1010,24 @@ tr.linha-cartao td {
   color: var(--texto-claro);
 }
 
+.link-reenviar-email {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 4px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.78rem;
+  color: var(--erro);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-reenviar-email:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* Ações da tabela: ícones lado a lado em telas largas; em telas estreitas,
    os ícones somem e só o botão "⋮" fica visível, abrindo uma linha com as
    ações por extenso (evita dois botões de texto espremendo a coluna). */

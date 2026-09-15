@@ -2,21 +2,25 @@ const nodemailer = require('nodemailer');
 
 const remetente = process.env.BREVO_REMETENTE;
 
-const transporter =
-  process.env.BREVO_SMTP_LOGIN && process.env.BREVO_SMTP_KEY
-    ? nodemailer.createTransport({
-        // Usa o hostname legado (Brevo era "Sendinblue"): em alguns momentos
-        // "smtp-relay.brevo.com" resolveu para um servidor cujo certificado
-        // TLS só cobria os nomes sendinblue.com, derrubando o envio.
-        host: 'smtp-relay.sendinblue.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.BREVO_SMTP_LOGIN,
-          pass: process.env.BREVO_SMTP_KEY,
-        },
-      })
-    : null;
+function criarTransporter(host) {
+  if (!process.env.BREVO_SMTP_LOGIN || !process.env.BREVO_SMTP_KEY) return null;
+  return nodemailer.createTransport({
+    host,
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.BREVO_SMTP_LOGIN,
+      pass: process.env.BREVO_SMTP_KEY,
+    },
+  });
+}
+
+// Tenta primeiro o host oficial; em alguns momentos "smtp-relay.brevo.com"
+// resolve para um servidor cujo certificado TLS só cobre os nomes legados
+// ("sendinblue.com", nome antigo da Brevo), derrubando o envio — nesse caso,
+// cai para o host legado antes de desistir.
+const transporterPrincipal = criarTransporter('smtp-relay.brevo.com');
+const transporterLegado = criarTransporter('smtp-relay.sendinblue.com');
 
 function escaparHtml(texto) {
   return String(texto)
@@ -71,12 +75,13 @@ function listarModalidadesHtml(registros) {
     .join('');
 }
 
-// Dispara em segundo plano e nunca lança erro — falha no envio não deve
-// impedir nem atrasar a resposta da inscrição, que já foi salva com sucesso.
-function enviarConfirmacaoInscricao(responsavel, registros, canceladasAnteriores, linkConsulta) {
-  if (!transporter) {
+// Nunca lança erro — quem chama decide se quer aguardar o resultado (ex: para
+// registrar o status) ou disparar em segundo plano sem bloquear a resposta.
+// Resolve para true/false conforme o e-mail foi entregue ou não.
+async function enviarConfirmacaoInscricao(responsavel, registros, canceladasAnteriores, linkConsulta) {
+  if (!transporterPrincipal) {
     console.warn('BREVO_SMTP_LOGIN/BREVO_SMTP_KEY não configurados — e-mail de confirmação não enviado.');
-    return;
+    return false;
   }
 
   const avisoTexto = canceladasAnteriores
@@ -111,15 +116,27 @@ Este é um e-mail automático de confirmação. Em caso de dúvidas, procure a o
     <p style="color:#666;font-size:0.85em">Este é um e-mail automático de confirmação. Em caso de dúvidas, procure a organização do evento.</p>
   `;
 
-  transporter
-    .sendMail({
-      from: `"Dia do Estudante 2026 - IFMA" <${remetente}>`,
-      to: responsavel.email,
-      subject: 'Confirmação de inscrição — Dia do Estudante 2026',
-      text: texto,
-      html,
-    })
-    .catch((e) => console.error('Falha ao enviar e-mail de confirmação:', e.message));
+  const mensagem = {
+    from: `"Dia do Estudante 2026 - IFMA" <${remetente}>`,
+    to: responsavel.email,
+    subject: 'Confirmação de inscrição — Dia do Estudante 2026',
+    text: texto,
+    html,
+  };
+
+  try {
+    await transporterPrincipal.sendMail(mensagem);
+    return true;
+  } catch (e1) {
+    console.warn('Falha ao enviar via host principal, tentando host legado:', e1.message);
+    try {
+      await transporterLegado.sendMail(mensagem);
+      return true;
+    } catch (e2) {
+      console.error('Falha ao enviar e-mail de confirmação (ambos os hosts):', e2.message);
+      return false;
+    }
+  }
 }
 
 module.exports = { enviarConfirmacaoInscricao };

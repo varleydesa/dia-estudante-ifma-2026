@@ -206,11 +206,16 @@
       ['Provas', inscricao.provas ? inscricao.provas.join(', ') : '—'],
       ['Inscrito em', inscricao.criado_em],
     ];
+    const avisoReenvio =
+      inscricao.email_status === 'falhou'
+        ? `<button type="button" class="link-reenviar-email" data-reenviar-email="${inscricao.id}">O e-mail de confirmação não foi entregue — reenviar</button>`
+        : '';
     return `
       <tr class="linha-cartao">
         <td colspan="16">
           <div class="cartao-detalhe">
             ${campos.map(([rotulo, valor]) => `<div class="item-detalhe"><span class="rotulo-detalhe">${rotulo}</span><span>${valor}</span></div>`).join('')}
+            ${avisoReenvio}
           </div>
         </td>
       </tr>
@@ -393,6 +398,28 @@
       } catch (e) {
         alert('Não foi possível atualizar o status. Tente novamente.');
         botaoStatusClicado.disabled = false;
+      }
+      return;
+    }
+
+    const botaoReenviarEmail = evento.target.closest('[data-reenviar-email]');
+    if (botaoReenviarEmail) {
+      const id = Number(botaoReenviarEmail.dataset.reenviarEmail);
+      botaoReenviarEmail.disabled = true;
+      botaoReenviarEmail.textContent = 'Reenviando…';
+      try {
+        const resp = await fetch(`/api/admin/inscricoes/${id}/reenviar-email`, { method: 'POST' });
+        const dados = await resp.json();
+        if (!resp.ok) throw new Error(dados.erro || 'Falha ao reenviar.');
+        for (const idAtualizado of dados.idsAtualizados || [id]) {
+          const inscricao = inscricoes.find((i) => i.id === idAtualizado);
+          if (inscricao) inscricao.email_status = 'enviado';
+        }
+        renderTabela();
+      } catch (e) {
+        alert(e.message || 'Não foi possível reenviar o e-mail. Tente novamente.');
+        botaoReenviarEmail.disabled = false;
+        botaoReenviarEmail.textContent = 'O e-mail de confirmação não foi entregue — reenviar';
       }
       return;
     }

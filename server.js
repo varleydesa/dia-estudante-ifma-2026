@@ -323,7 +323,11 @@ app.post(
       }
       await tx.commit();
       const linkConsulta = `${req.protocol}://${req.get('host')}/consulta.html?token=${tokenConsulta}`;
-      enviarConfirmacaoInscricao(responsavel, registros, anteriores.length, linkConsulta);
+      // Não aguarda o envio (não deve atrasar a resposta), mas registra o
+      // resultado assim que souber, para o painel poder oferecer reenvio.
+      enviarConfirmacaoInscricao(responsavel, registros, anteriores.length, linkConsulta)
+        .then((sucesso) => atualizarEmailStatus(idsGerados, sucesso ? 'enviado' : 'falhou'))
+        .catch(() => atualizarEmailStatus(idsGerados, 'falhou'));
       res.status(201).json({ ok: true, ids: idsGerados, canceladasAnteriores: anteriores.length });
     } catch (e) {
       await tx.rollback();
@@ -331,6 +335,52 @@ app.post(
     }
   })
 );
+
+async function atualizarEmailStatus(ids, status) {
+  for (const id of ids) {
+    await db.execute({ sql: 'UPDATE inscricoes SET email_status = ? WHERE id = ?', args: [status, id] });
+  }
+}
+
+// Reúne as inscrições ativas de uma pessoa (a partir da matrícula) no mesmo
+// formato usado para montar o e-mail de confirmação — usado tanto no envio
+// original quanto no reenvio manual pelo painel.
+async function montarRegistrosAtivosPorMatricula(matricula) {
+  const { rows: inscricoes } = await db.execute({
+    sql: `
+      SELECT DISTINCT i.id, i.tipo, i.modalidade_nome, i.categoria, i.nome_equipe, i.token_consulta
+      FROM inscricoes i
+      JOIN participantes p ON p.inscricao_id = i.id
+      WHERE LOWER(TRIM(p.matricula)) = LOWER(?)
+        AND (p.capitao = 1 OR i.tipo = 'individual')
+        AND i.status != 'cancelada'
+      ORDER BY i.id ASC
+    `,
+    args: [matricula],
+  });
+
+  const registros = [];
+  for (const insc of inscricoes) {
+    const registro = {
+      id: insc.id,
+      tipo: insc.tipo,
+      modalidade_nome: insc.modalidade_nome,
+      categoria: insc.categoria,
+      nome_equipe: insc.nome_equipe,
+    };
+    if (insc.tipo === 'equipe') {
+      const { rows: participantes } = await db.execute({
+        sql: 'SELECT nome_completo, capitao, titular FROM participantes WHERE inscricao_id = ? ORDER BY capitao DESC, id ASC',
+        args: [insc.id],
+      });
+      registro.participantes = participantes;
+    }
+    registros.push(registro);
+  }
+
+  const tokenExistente = inscricoes.find((i) => i.token_consulta)?.token_consulta;
+  return { registros, tokenExistente };
+}
 
 app.get(
   '/api/inscricoes/verificar-matricula',
@@ -533,13 +583,54 @@ app.patch(
   })
 );
 
+app.post(
+  '/api/admin/inscricoes/:id/reenviar-email',
+  auth.exigirLogin,
+  rota(async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) return erro(res, 400, 'ID inválido.');
+
+    const { rows: dono } = await db.execute({
+      sql: `
+        SELECT p.matricula, p.nome_completo, p.email
+        FROM inscricoes i
+        JOIN participantes p ON p.inscricao_id = i.id
+        WHERE i.id = ? AND (p.capitao = 1 OR i.tipo = 'individual')
+        LIMIT 1
+      `,
+      args: [id],
+    });
+    if (dono.length === 0) return erro(res, 404, 'Inscrição não encontrada.');
+    const responsavel = dono[0];
+    if (!textoValido(responsavel.email, 120) || !responsavel.email.includes('@')) {
+      return erro(res, 400, 'Essa inscrição não tem e-mail válido cadastrado.');
+    }
+
+    const { registros, tokenExistente } = await montarRegistrosAtivosPorMatricula(responsavel.matricula);
+    if (registros.length === 0) return erro(res, 404, 'Nenhuma inscrição ativa encontrada para reenviar.');
+
+    const token = tokenExistente || crypto.randomBytes(16).toString('hex');
+    const idsAtualizados = registros.map((r) => r.id);
+    for (const registroId of idsAtualizados) {
+      await db.execute({ sql: 'UPDATE inscricoes SET token_consulta = ? WHERE id = ?', args: [token, registroId] });
+    }
+
+    const linkConsulta = `${req.protocol}://${req.get('host')}/consulta.html?token=${token}`;
+    const sucesso = await enviarConfirmacaoInscricao(responsavel, registros, 0, linkConsulta);
+    await atualizarEmailStatus(idsAtualizados, sucesso ? 'enviado' : 'falhou');
+
+    if (!sucesso) return erro(res, 502, 'Não foi possível enviar o e-mail. Tente novamente mais tarde.');
+    res.json({ ok: true, idsAtualizados });
+  })
+);
+
 // ---------- Consulta das inscrições (protegida) ----------
 
 async function carregarInscricoes() {
   const { rows } = await db.execute(`
     SELECT
       i.id, i.modalidade_id, i.modalidade_nome, i.tipo, i.nivel, i.categoria,
-      i.nome_equipe, i.provas, i.observacoes, i.status, i.criado_em,
+      i.nome_equipe, i.provas, i.observacoes, i.status, i.email_status, i.criado_em,
       p.id AS participante_id, p.nome_completo, p.matricula, p.curso,
       p.telefone AS participante_telefone, p.email AS participante_email,
       p.capitao, p.titular
@@ -562,6 +653,7 @@ async function carregarInscricoes() {
         provas: linha.provas ? JSON.parse(linha.provas) : null,
         observacoes: linha.observacoes,
         status: linha.status,
+        email_status: linha.email_status,
         criado_em: linha.criado_em,
         participantes: [],
       });
