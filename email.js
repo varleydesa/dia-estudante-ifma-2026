@@ -17,7 +17,7 @@ const transporter =
 
 function listarModalidades(registros) {
   return registros
-    .map((r) => `- ${r.modalidade_nome}${r.categoria ? ` (${r.categoria})` : ''}${r.nome_equipe ? ` — time "${r.nome_equipe}"` : ''}`)
+    .map((r) => `- Nº ${String(r.id).padStart(3, '0')} — ${r.modalidade_nome}${r.categoria ? ` (${r.categoria})` : ''}${r.nome_equipe ? ` — time "${r.nome_equipe}"` : ''}`)
     .join('\n');
 }
 

@@ -304,6 +304,7 @@ app.post(
         });
         const inscricaoId = Number(resultado.lastInsertRowid);
         idsGerados.push(inscricaoId);
+        registro.id = inscricaoId;
 
         for (const p of registro.participantes) {
           await tx.execute({
