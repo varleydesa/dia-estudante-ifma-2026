@@ -1181,16 +1181,55 @@ tr.linha-menu-acoes td {
   table.tabela-inscricoes {
     width: 100%;
     min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
     font-size: 9px;
   }
 
   table.tabela-inscricoes th,
   table.tabela-inscricoes td {
     white-space: normal;
+    overflow-wrap: anywhere;
     padding: 4px 5px;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  table.tabela-inscricoes .emblema {
+    white-space: nowrap;
+  }
+
+  /* Larguras fixas em % (somando 100% das colunas visíveis), para a tabela
+     nunca ultrapassar a página — sem isso, textos sem espaço (e-mail,
+     matrícula) empurravam a tabela pra fora mesmo com quebra de linha. */
+  table.tabela-inscricoes th:nth-child(1),
+  table.tabela-inscricoes td:nth-child(1) { width: 3%; }
+  table.tabela-inscricoes th:nth-child(3),
+  table.tabela-inscricoes td:nth-child(3) { width: 7%; }
+  table.tabela-inscricoes th:nth-child(4),
+  table.tabela-inscricoes td:nth-child(4) { width: 7%; }
+  table.tabela-inscricoes th:nth-child(5),
+  table.tabela-inscricoes td:nth-child(5) { width: 6%; }
+  table.tabela-inscricoes th:nth-child(6),
+  table.tabela-inscricoes td:nth-child(6) { width: 5%; }
+  table.tabela-inscricoes th:nth-child(7),
+  table.tabela-inscricoes td:nth-child(7) { width: 12%; }
+  table.tabela-inscricoes th:nth-child(8),
+  table.tabela-inscricoes td:nth-child(8) { width: 5%; }
+  table.tabela-inscricoes th:nth-child(9),
+  table.tabela-inscricoes td:nth-child(9) { width: 7%; }
+  table.tabela-inscricoes th:nth-child(10),
+  table.tabela-inscricoes td:nth-child(10) { width: 8%; }
+  table.tabela-inscricoes th:nth-child(11),
+  table.tabela-inscricoes td:nth-child(11) { width: 8%; }
+  table.tabela-inscricoes th:nth-child(12),
+  table.tabela-inscricoes td:nth-child(12) { width: 7%; }
+  table.tabela-inscricoes th:nth-child(13),
+  table.tabela-inscricoes td:nth-child(13) { width: 12%; }
+  table.tabela-inscricoes th:nth-child(14),
+  table.tabela-inscricoes td:nth-child(14) { width: 7%; }
+  table.tabela-inscricoes th:nth-child(15),
+  table.tabela-inscricoes td:nth-child(15) { width: 6%; }
 
   table.tabela-inscricoes th {
     position: static;
