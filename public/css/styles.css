@@ -871,6 +871,21 @@ table.tabela-inscricoes tr:last-child td {
   border-bottom: none;
 }
 
+/* Papel/Time só fazem sentido para modalidades coletivas, e Provas só para
+   o Atletismo — somem quando nada na lista filtrada usa esses dados,
+   tanto na tela quanto na impressão (mesmas classes nos dois casos). */
+table.tabela-inscricoes.sem-coletiva th:nth-child(8),
+table.tabela-inscricoes.sem-coletiva td:nth-child(8),
+table.tabela-inscricoes.sem-coletiva th:nth-child(9),
+table.tabela-inscricoes.sem-coletiva td:nth-child(9) {
+  display: none;
+}
+
+table.tabela-inscricoes.sem-provas th:nth-child(14),
+table.tabela-inscricoes.sem-provas td:nth-child(14) {
+  display: none;
+}
+
 /* Coluna "Ações" fixa na borda direita, para não sumir ao rolar a tabela */
 table.tabela-inscricoes th:last-child,
 table.tabela-inscricoes td:last-child {

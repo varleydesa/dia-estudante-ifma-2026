@@ -7,6 +7,7 @@
   const filtroNivel = document.getElementById('filtro-nivel');
   const filtroBusca = document.getElementById('filtro-busca');
   const corpoTabela = document.getElementById('corpo-tabela');
+  const tabelaElemento = document.querySelector('table.tabela-inscricoes');
   const contagemResultados = document.getElementById('contagem-resultados');
   const btnSair = document.getElementById('btn-sair');
   const linkCsv = document.getElementById('link-csv');
@@ -278,6 +279,14 @@
       0
     );
     contagemResultados.textContent = `${grupos.length} inscrição(ões) · ${totalParticipantesExibidos} participante(s) encontrado(s).`;
+
+    // Colunas só fazem sentido se algo na lista atual (já filtrada) usa esse
+    // dado — Papel/Time são exclusivos de modalidades coletivas, e Provas é
+    // exclusivo do Atletismo. Aplica tanto na tela quanto na impressão.
+    const temColetiva = grupos.some((g) => g.inscricao.tipo === 'equipe');
+    const temProvas = grupos.some((g) => g.inscricao.provas);
+    tabelaElemento.classList.toggle('sem-coletiva', !temColetiva);
+    tabelaElemento.classList.toggle('sem-provas', !temProvas);
 
     const linhas = [];
 
