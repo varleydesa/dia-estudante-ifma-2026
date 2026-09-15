@@ -33,7 +33,7 @@
   </header>
 
   <main class="pagina-form">
-    <div class="container">
+    <div class="container container-painel">
       <div id="carregando">Carregando inscrições…</div>
 
       <div id="conteudo" style="display:none">
@@ -61,8 +61,10 @@
               <label for="filtro-busca">Buscar por nome, matrícula ou time</label>
               <input type="text" id="filtro-busca" placeholder="Digite para filtrar…" />
             </div>
-            <a class="btn btn-primario btn-pequeno" id="link-csv" href="/api/admin/inscricoes.csv">Exportar CSV</a>
-            <button type="button" class="btn btn-secundario btn-pequeno" id="btn-imprimir">Imprimir / PDF</button>
+            <div class="acoes-filtros">
+              <a class="btn btn-primario btn-pequeno" id="link-csv" href="/api/admin/inscricoes.csv">Exportar CSV</a>
+              <button type="button" class="btn btn-secundario btn-pequeno" id="btn-imprimir">Imprimir / PDF</button>
+            </div>
           </div>
 
           <p id="contagem-resultados" style="font-size:0.85rem;color:var(--texto-claro)"></p>

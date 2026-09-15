@@ -825,6 +825,10 @@ fieldset.secao-form legend {
   color: var(--texto-claro);
 }
 
+.container.container-painel {
+  max-width: 1280px;
+}
+
 .barra-filtros {
   display: flex;
   flex-wrap: wrap;
@@ -835,6 +839,17 @@ fieldset.secao-form legend {
 
 .barra-filtros .campo {
   min-width: 160px;
+}
+
+.acoes-filtros {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .acoes-filtros {
+    width: 100%;
+  }
 }
 
 .tabela-scroll {
