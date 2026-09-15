@@ -71,6 +71,18 @@ async function migrarStatusInscricoes() {
   console.log('Coluna "status" adicionada à tabela "inscricoes".');
 }
 
+// Adiciona a coluna do token usado no link de consulta pública (e-mail de
+// confirmação) a bancos criados antes dela existir.
+async function migrarTokenConsulta() {
+  const { rows } = await db.execute("PRAGMA table_info(inscricoes)");
+  if (rows.length === 0) return;
+  const jaTemToken = rows.some((c) => c.name === 'token_consulta');
+  if (jaTemToken) return;
+
+  await db.execute('ALTER TABLE inscricoes ADD COLUMN token_consulta TEXT');
+  console.log('Coluna "token_consulta" adicionada à tabela "inscricoes".');
+}
+
 async function iniciar() {
   // O Turso mantém "foreign_keys" ligado por padrão. Migrações que recriam
   // tabelas (DROP + RENAME) disparariam ON DELETE CASCADE contra as linhas
@@ -85,6 +97,7 @@ async function iniciar() {
   );
   await db.execute('PRAGMA foreign_keys = ON');
   await migrarStatusInscricoes();
+  await migrarTokenConsulta();
 
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
@@ -98,6 +111,7 @@ async function iniciar() {
       provas TEXT,
       observacoes TEXT,
       status TEXT NOT NULL DEFAULT 'ativa',
+      token_consulta TEXT,
       criado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
 

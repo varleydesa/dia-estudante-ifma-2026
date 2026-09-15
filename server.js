@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const express = require('express');
 const session = require('express-session');
 const { db, iniciar } = require('./db');
@@ -252,6 +253,11 @@ app.post(
         await tx.execute({ sql: "UPDATE inscricoes SET status = 'cancelada' WHERE id = ?", args: [anterior.id] });
       }
 
+      // Token aleatório e imprevisível (não é o Nº sequencial) usado no link
+      // de consulta pública do e-mail de confirmação — não tem relação
+      // nenhuma com login/sessão do admin.
+      const tokenConsulta = crypto.randomBytes(16).toString('hex');
+
       const idsGerados = [];
       for (const registro of registros) {
         const modalidade = modalidadesPorId.get(registro.modalidade_id);
@@ -289,8 +295,8 @@ app.post(
         }
 
         const resultado = await tx.execute({
-          sql: `INSERT INTO inscricoes (modalidade_id, modalidade_nome, tipo, nivel, categoria, nome_equipe, provas, observacoes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          sql: `INSERT INTO inscricoes (modalidade_id, modalidade_nome, tipo, nivel, categoria, nome_equipe, provas, observacoes, token_consulta)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [
             registro.modalidade_id,
             registro.modalidade_nome,
@@ -300,6 +306,7 @@ app.post(
             registro.nome_equipe,
             registro.provas,
             registro.observacoes,
+            tokenConsulta,
           ],
         });
         const inscricaoId = Number(resultado.lastInsertRowid);
@@ -315,7 +322,8 @@ app.post(
         }
       }
       await tx.commit();
-      enviarConfirmacaoInscricao(responsavel, registros, anteriores.length);
+      const linkConsulta = `${req.protocol}://${req.get('host')}/consulta.html?token=${tokenConsulta}`;
+      enviarConfirmacaoInscricao(responsavel, registros, anteriores.length, linkConsulta);
       res.status(201).json({ ok: true, ids: idsGerados, canceladasAnteriores: anteriores.length });
     } catch (e) {
       await tx.rollback();
@@ -343,6 +351,56 @@ app.get(
     });
 
     res.json({ existe: rows.length > 0, modalidades: rows.map((r) => r.modalidade_nome) });
+  })
+);
+
+// Consulta pública (sem login) das próprias inscrições, a partir do link
+// enviado por e-mail. O token é aleatório e só identifica a matrícula do
+// dono da inscrição — nunca dá acesso a dados de outras pessoas nem a
+// nenhuma rota/capacidade administrativa.
+app.get(
+  '/api/consulta/:token',
+  rota(async (req, res) => {
+    const token = req.params.token;
+    if (!textoValido(token, 64)) return erro(res, 400, 'Link inválido.');
+
+    const { rows: dono } = await db.execute({
+      sql: `
+        SELECT p.matricula, p.nome_completo
+        FROM inscricoes i
+        JOIN participantes p ON p.inscricao_id = i.id
+        WHERE i.token_consulta = ? AND (p.capitao = 1 OR i.tipo = 'individual')
+        LIMIT 1
+      `,
+      args: [token],
+    });
+    if (dono.length === 0) return erro(res, 404, 'Link inválido ou expirado.');
+
+    const { rows } = await db.execute({
+      sql: `
+        SELECT DISTINCT i.id, i.modalidade_nome, i.nivel, i.categoria, i.nome_equipe, i.provas, i.status, i.criado_em
+        FROM inscricoes i
+        JOIN participantes p ON p.inscricao_id = i.id
+        WHERE LOWER(TRIM(p.matricula)) = LOWER(?)
+          AND (p.capitao = 1 OR i.tipo = 'individual')
+        ORDER BY i.criado_em ASC
+      `,
+      args: [dono[0].matricula],
+    });
+
+    res.json({
+      nome: dono[0].nome_completo,
+      inscricoes: rows.map((r) => ({
+        id: r.id,
+        modalidade_nome: r.modalidade_nome,
+        nivel: r.nivel,
+        categoria: r.categoria,
+        nome_equipe: r.nome_equipe,
+        provas: r.provas ? JSON.parse(r.provas) : null,
+        status: r.status,
+        criado_em: r.criado_em,
+      })),
+    });
   })
 );
 
