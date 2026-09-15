@@ -40,6 +40,14 @@
     if (i.provas && i.provas.length) detalhes.push(`Provas: ${i.provas.join(', ')}`);
     detalhes.push(`Inscrito em: ${i.criado_em}`);
 
+    const integrantes =
+      i.integrantes && i.integrantes.length
+        ? `
+          <div class="subgrupo-titulo">Integrantes</div>
+          <ul>${i.integrantes.map((p) => `<li>${p.nome_completo}${p.papel ? ` — ${p.papel}` : ''}</li>`).join('')}</ul>
+        `
+        : '';
+
     return `
       <article class="cartao-modalidade" style="${cancelada ? 'opacity:0.6' : ''}">
         <span class="etiqueta-tipo ${cancelada ? 'equipe' : 'individual'}">
@@ -47,6 +55,7 @@
         </span>
         <h3>${i.modalidade_nome}</h3>
         <ul>${detalhes.map((d) => `<li>${d}</li>`).join('')}</ul>
+        ${integrantes}
       </article>
     `;
   }

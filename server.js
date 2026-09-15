@@ -378,7 +378,7 @@ app.get(
 
     const { rows } = await db.execute({
       sql: `
-        SELECT DISTINCT i.id, i.modalidade_nome, i.nivel, i.categoria, i.nome_equipe, i.provas, i.status, i.criado_em
+        SELECT DISTINCT i.id, i.tipo, i.modalidade_nome, i.nivel, i.categoria, i.nome_equipe, i.provas, i.status, i.criado_em
         FROM inscricoes i
         JOIN participantes p ON p.inscricao_id = i.id
         WHERE LOWER(TRIM(p.matricula)) = LOWER(?)
@@ -388,10 +388,31 @@ app.get(
       args: [dono[0].matricula],
     });
 
+    const idsEquipe = rows.filter((r) => r.tipo === 'equipe').map((r) => r.id);
+    const integrantesPorInscricao = new Map();
+    if (idsEquipe.length > 0) {
+      const placeholders = idsEquipe.map(() => '?').join(',');
+      const { rows: integrantes } = await db.execute({
+        sql: `
+          SELECT inscricao_id, nome_completo, capitao, titular
+          FROM participantes
+          WHERE inscricao_id IN (${placeholders})
+          ORDER BY capitao DESC, id ASC
+        `,
+        args: idsEquipe,
+      });
+      for (const p of integrantes) {
+        if (!integrantesPorInscricao.has(p.inscricao_id)) integrantesPorInscricao.set(p.inscricao_id, []);
+        const papel = p.capitao ? 'Capitão(ã)' : p.titular === 1 ? 'Titular' : p.titular === 0 ? 'Reserva' : null;
+        integrantesPorInscricao.get(p.inscricao_id).push({ nome_completo: p.nome_completo, papel });
+      }
+    }
+
     res.json({
       nome: dono[0].nome_completo,
       inscricoes: rows.map((r) => ({
         id: r.id,
+        tipo: r.tipo,
         modalidade_nome: r.modalidade_nome,
         nivel: r.nivel,
         categoria: r.categoria,
@@ -399,6 +420,7 @@ app.get(
         provas: r.provas ? JSON.parse(r.provas) : null,
         status: r.status,
         criado_em: r.criado_em,
+        integrantes: integrantesPorInscricao.get(r.id) || null,
       })),
     });
   })

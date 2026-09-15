@@ -27,16 +27,44 @@ function descricaoModalidade(r) {
   return `${r.modalidade_nome}${r.categoria ? ` (${r.categoria})` : ''}${r.nome_equipe ? ` — time "${r.nome_equipe}"` : ''}`;
 }
 
+function papelDe(p) {
+  if (p.capitao) return 'Capitão(ã)';
+  if (p.titular === true || p.titular === 1) return 'Titular';
+  if (p.titular === false || p.titular === 0) return 'Reserva';
+  return null;
+}
+
+function listarIntegrantes(participantes) {
+  return participantes
+    .map((p) => {
+      const papel = papelDe(p);
+      return papel ? `${p.nome_completo} (${papel})` : p.nome_completo;
+    })
+    .join(', ');
+}
+
 function listarModalidadesTexto(registros) {
-  return registros.map((r) => `- Nº ${String(r.id).padStart(3, '0')} — ${descricaoModalidade(r)}`).join('\n');
+  return registros
+    .map((r) => {
+      let linha = `- Nº ${String(r.id).padStart(3, '0')} — ${descricaoModalidade(r)}`;
+      if (r.tipo === 'equipe' && r.participantes?.length) {
+        linha += `\n  Integrantes: ${listarIntegrantes(r.participantes)}`;
+      }
+      return linha;
+    })
+    .join('\n');
 }
 
 function listarModalidadesHtml(registros) {
   return registros
-    .map(
-      (r) =>
-        `<li><strong>Nº ${String(r.id).padStart(3, '0')}</strong> — ${escaparHtml(descricaoModalidade(r))}</li>`
-    )
+    .map((r) => {
+      let item = `<li><strong>Nº ${String(r.id).padStart(3, '0')}</strong> — ${escaparHtml(descricaoModalidade(r))}`;
+      if (r.tipo === 'equipe' && r.participantes?.length) {
+        item += `<br><span style="font-size:0.9em;color:#555">Integrantes: ${escaparHtml(listarIntegrantes(r.participantes))}</span>`;
+      }
+      item += '</li>';
+      return item;
+    })
     .join('');
 }
 
