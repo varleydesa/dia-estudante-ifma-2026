@@ -688,8 +688,10 @@ function filtrarInscricoes(inscricoes, { modalidadeId, nivel, busca }) {
     if (nivel && inscricao.nivel !== nivel) return false;
     if (busca) {
       const nomeEquipeCorresponde = (inscricao.nome_equipe || '').toLowerCase().includes(busca);
-      const algumParticipanteCorresponde = inscricao.participantes.some((p) =>
-        p.nome_completo.toLowerCase().includes(busca)
+      const algumParticipanteCorresponde = inscricao.participantes.some(
+        (p) =>
+          p.nome_completo.toLowerCase().includes(busca) ||
+          (p.matricula || '').toLowerCase().includes(busca)
       );
       if (!nomeEquipeCorresponde && !algumParticipanteCorresponde) return false;
     }

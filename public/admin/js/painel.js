@@ -103,8 +103,10 @@
 
       if (busca) {
         const nomeEquipeCorresponde = (inscricao.nome_equipe || '').toLowerCase().includes(busca);
-        participantesCorrespondentes = inscricao.participantes.filter((p) =>
-          p.nome_completo.toLowerCase().includes(busca)
+        participantesCorrespondentes = inscricao.participantes.filter(
+          (p) =>
+            p.nome_completo.toLowerCase().includes(busca) ||
+            (p.matricula || '').toLowerCase().includes(busca)
         );
         equipeCorresponde = nomeEquipeCorresponde || participantesCorrespondentes.length > 0;
         if (!equipeCorresponde) continue;
