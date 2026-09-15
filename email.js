@@ -5,7 +5,10 @@ const remetente = process.env.BREVO_REMETENTE;
 const transporter =
   process.env.BREVO_SMTP_LOGIN && process.env.BREVO_SMTP_KEY
     ? nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
+        // Usa o hostname legado (Brevo era "Sendinblue"): em alguns momentos
+        // "smtp-relay.brevo.com" resolveu para um servidor cujo certificado
+        // TLS só cobria os nomes sendinblue.com, derrubando o envio.
+        host: 'smtp-relay.sendinblue.com',
         port: 587,
         secure: false,
         auth: {
