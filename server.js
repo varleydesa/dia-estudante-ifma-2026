@@ -6,6 +6,7 @@ const express = require('express');
 const session = require('express-session');
 const { db, iniciar } = require('./db');
 const auth = require('./auth');
+const { enviarConfirmacaoInscricao } = require('./email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -313,6 +314,7 @@ app.post(
         }
       }
       await tx.commit();
+      enviarConfirmacaoInscricao(responsavel, registros, anteriores.length);
       res.status(201).json({ ok: true, ids: idsGerados, canceladasAnteriores: anteriores.length });
     } catch (e) {
       await tx.rollback();
