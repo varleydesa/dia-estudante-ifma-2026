@@ -204,8 +204,9 @@
           <input type="text" id="equipe-nome-${m.id}" maxlength="100" required />
         </div>
         <p style="font-size:0.85rem;color:var(--texto-claro)">
-          Você (responsável pelos dados informados na primeira etapa) será incluído automaticamente como
-          capitão(ã) do time. Adicione abaixo os demais integrantes.
+          Você (responsável pelos dados informados na primeira etapa) <strong>já conta como 1 integrante</strong> e
+          será incluído automaticamente como capitão(ã) do time — não adicione seu próprio nome na lista abaixo.
+          ${m.maxAtletas ? `Adicione só <strong>as outras ${m.maxAtletas - 1} pessoas</strong> (no máximo).` : 'Adicione abaixo os demais integrantes.'}
         </p>
         <div id="atletas-${m.id}"></div>
         <button type="button" class="btn btn-fantasma btn-pequeno" data-add-atleta="${m.id}">+ Adicionar integrante</button>
@@ -300,8 +301,19 @@
       if (titulares !== m.titulares || reservas > m.reservas) ok = false;
     }
 
+    const nomes = [coletarResponsavel().nome_completo, ...Array.from(linhas).map((l) => l.querySelector('[data-atleta-nome]').value)]
+      .map((n) => n.trim().toLowerCase())
+      .filter(Boolean);
+    if (nomes.some((n, i) => nomes.indexOf(n) !== i)) {
+      texto += ' — atenção: há integrantes com o mesmo nome (confira se você não se adicionou de novo)';
+      ok = false;
+    }
+
     elContador.textContent = texto;
     elContador.className = `contador-equipe ${ok ? 'ok' : 'alerta'}`;
+
+    const botaoAdicionar = document.querySelector(`[data-add-atleta="${m.id}"]`);
+    if (botaoAdicionar) botaoAdicionar.disabled = !!(m.maxAtletas && total >= m.maxAtletas);
   }
 
   function contarPorTitular(linhas, valor) {
