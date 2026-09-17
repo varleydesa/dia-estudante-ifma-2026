@@ -404,6 +404,94 @@ section.faixa-clara {
   margin-top: 6px;
 }
 
+/* Linha do tempo (cronograma) */
+.linha-tempo {
+  list-style: none;
+  margin: 32px 0;
+  padding: 0;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.etapa-tempo {
+  display: flex;
+  gap: 18px;
+  position: relative;
+  padding-bottom: 32px;
+}
+
+.etapa-tempo:last-child {
+  padding-bottom: 0;
+}
+
+.etapa-tempo::before {
+  content: '';
+  position: absolute;
+  left: 21px;
+  top: 44px;
+  bottom: 0;
+  width: 2px;
+  background: var(--borda);
+}
+
+.etapa-tempo:last-child::before {
+  display: none;
+}
+
+.etapa-icone {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--verde-suave);
+  border: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.etapa-destaque .etapa-icone {
+  background: var(--vinho);
+  border-color: var(--vinho);
+}
+
+.etapa-corpo {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: var(--sombra);
+  flex: 1;
+}
+
+.etapa-destaque .etapa-corpo {
+  border-color: var(--vinho);
+}
+
+.etapa-data {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vinho);
+  margin-bottom: 4px;
+}
+
+.etapa-corpo h3 {
+  margin: 0 0 6px;
+  color: var(--verde-escuro);
+  font-size: 1.05rem;
+}
+
+.etapa-corpo p {
+  margin: 0;
+  color: var(--texto-claro);
+  font-size: 0.92rem;
+}
+
 /* Rodapé */
 footer.principal {
   background: #1c2414;
