@@ -188,6 +188,11 @@ function validarInscricao(item, responsavel) {
     if (nomeDuplicado) {
       return { erro: `Em ${modalidade.nome}, há integrantes com o mesmo nome. Cada integrante deve ser uma pessoa diferente.` };
     }
+    const matriculasNormalizadas = participantes.map((p) => p.matricula.trim().toLowerCase());
+    const matriculaDuplicada = matriculasNormalizadas.some((mt, i) => matriculasNormalizadas.indexOf(mt) !== i);
+    if (matriculaDuplicada) {
+      return { erro: `Em ${modalidade.nome}, há integrantes com a mesma matrícula. Cada integrante deve ser uma pessoa diferente.` };
+    }
 
     const total = participantes.length;
     if (modalidade.minAtletas && total < modalidade.minAtletas) {

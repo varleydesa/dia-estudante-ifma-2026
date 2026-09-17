@@ -222,14 +222,15 @@
     }
 
     if (m.tipo === 'equipe') {
+      const nomeCapitao = coletarResponsavel().nome_completo || 'Você';
       partes.push(`
         <div class="campo">
           <label for="equipe-nome-${m.id}">Nome do time <span class="obrigatorio">*</span></label>
           <input type="text" id="equipe-nome-${m.id}" maxlength="100" required />
         </div>
         <p style="font-size:0.85rem;color:var(--texto-claro)">
-          Você (responsável pelos dados informados na primeira etapa) <strong>já conta como 1 integrante</strong> e
-          será incluído automaticamente como capitão(ã) do time — não adicione seu próprio nome na lista abaixo.
+          <strong>${nomeCapitao} — Capitão(ã)</strong> já foi inserido(a) automaticamente com os dados da tela inicial e
+          <strong>já conta como 1 integrante</strong>. Não adicione seu próprio nome ou matrícula na lista abaixo.
           ${m.maxAtletas ? `Adicione só <strong>as outras ${m.maxAtletas - 1} pessoas</strong> (no máximo).` : 'Adicione abaixo os demais integrantes.'}
         </p>
         <div id="atletas-${m.id}"></div>
@@ -330,6 +331,17 @@
       .filter(Boolean);
     if (nomes.some((n, i) => nomes.indexOf(n) !== i)) {
       texto += ' — atenção: há integrantes com o mesmo nome (confira se você não se adicionou de novo)';
+      ok = false;
+    }
+
+    const matriculas = [
+      coletarResponsavel().matricula,
+      ...Array.from(linhas).map((l) => l.querySelector('[data-atleta-matricula]').value),
+    ]
+      .map((mt) => mt.trim().toLowerCase())
+      .filter(Boolean);
+    if (matriculas.some((mt, i) => matriculas.indexOf(mt) !== i)) {
+      texto += ' — atenção: há integrantes com a mesma matrícula (confira se você não se adicionou de novo)';
       ok = false;
     }
 
@@ -449,6 +461,12 @@
       }
       if (nomesNormalizados.some((n, i) => nomesNormalizados.indexOf(n) !== i)) {
         return { erro: `Em "${m.nome}", há integrantes com o mesmo nome. Cada integrante deve ser uma pessoa diferente.` };
+      }
+      const matriculasNormalizadas = [responsavel.matricula, ...atletas.map((a) => a.matricula)].map((mt) =>
+        mt.trim().toLowerCase()
+      );
+      if (matriculasNormalizadas.some((mt, i) => matriculasNormalizadas.indexOf(mt) !== i)) {
+        return { erro: `Em "${m.nome}", há integrantes com a mesma matrícula. Cada integrante deve ser uma pessoa diferente.` };
       }
 
       const total = atletas.length + 1;
