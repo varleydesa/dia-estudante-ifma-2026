@@ -91,16 +91,6 @@
     "previsao": "Dia e horário a confirmar"
   },
   {
-    "id": "oficina_cubo_magico",
-    "nome": "Oficina de Cubo Mágico",
-    "tipo": "individual",
-    "secao": "oficinas",
-    "temNivel": false,
-    "categorias": ["Único"],
-    "limiteVagas": 30,
-    "previsao": "Dia e horário a confirmar"
-  },
-  {
     "id": "exposicao_arte_cultura",
     "nome": "Exposição de Arte e Cultura",
     "tipo": "individual",
