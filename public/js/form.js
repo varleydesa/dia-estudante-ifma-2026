@@ -16,6 +16,7 @@
   const acoesPosEnvio = document.getElementById('acoes-pos-envio');
   const respMatricula = document.getElementById('resp-matricula');
   const avisoDuplicidade = document.getElementById('aviso-duplicidade');
+  const inscricoesEncerradas = document.getElementById('inscricoes-encerradas');
 
   let modalidades = [];
   const contadorAtletaPorModalidade = {};
@@ -26,6 +27,29 @@
   init();
 
   async function init() {
+    try {
+      const respStatus = await fetch('/api/inscricoes/status');
+      const status = await respStatus.json();
+      if (!status.aberto) {
+        const prazoFormatado = new Date(status.prazo).toLocaleString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        inscricoesEncerradas.textContent = `As inscrições foram encerradas em ${prazoFormatado}. Não é mais possível se inscrever.`;
+        inscricoesEncerradas.hidden = false;
+        progressoEtapas.hidden = true;
+        form.hidden = true;
+        return;
+      }
+    } catch (e) {
+      // Se a checagem de prazo falhar, deixa seguir — a validação
+      // definitiva acontece no servidor no momento do envio.
+    }
+
     try {
       modalidades = await window.Modalidades.carregar();
     } catch (e) {

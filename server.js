@@ -18,6 +18,27 @@ const modalidades = JSON.parse(
 );
 const modalidadesPorId = new Map(modalidades.map((m) => [m.id, m]));
 
+// Fuso fixo (-03:00) porque o Maranhão não tem horário de verão, independente
+// de onde o servidor (Render) roda — assim a comparação de prazo não depende
+// do fuso do host.
+const PRAZO_INSCRICOES = new Date(process.env.INSCRICOES_PRAZO || '2026-09-18T23:59:59-03:00');
+
+function inscricoesAbertas() {
+  return Date.now() < PRAZO_INSCRICOES.getTime();
+}
+
+function mensagemPrazoEncerrado() {
+  const formatado = PRAZO_INSCRICOES.toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `As inscrições foram encerradas em ${formatado}. Não é mais possível enviar novas inscrições.`;
+}
+
 app.set('trust proxy', 1);
 app.use(express.json());
 app.use(
@@ -60,6 +81,10 @@ app.get(
     res.json(resposta);
   })
 );
+
+app.get('/api/inscricoes/status', (req, res) => {
+  res.json({ aberto: inscricoesAbertas(), prazo: PRAZO_INSCRICOES.toISOString() });
+});
 
 function erro(res, status, mensagem) {
   return res.status(status).json({ erro: mensagem });
@@ -211,6 +236,10 @@ function validarInscricao(item, responsavel) {
 app.post(
   '/api/inscricoes',
   rota(async (req, res) => {
+    if (!inscricoesAbertas()) {
+      return erro(res, 403, mensagemPrazoEncerrado());
+    }
+
     const { responsavel, inscricoes } = req.body || {};
 
     const erroResponsavel = validarResponsavel(responsavel);
