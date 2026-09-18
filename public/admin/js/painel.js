@@ -44,7 +44,10 @@
       usuarioLogado.textContent = dadosMe.usuario;
 
       modalidades = await window.Modalidades.carregar();
-      filtroModalidade.innerHTML += modalidades.map((m) => `<option value="${m.id}">${m.nome}</option>`).join('');
+      filtroModalidade.innerHTML += modalidades
+        .filter((m) => !m.cancelada)
+        .map((m) => `<option value="${m.id}">${m.nome}</option>`)
+        .join('');
 
       const respInscricoes = await fetch('/api/admin/inscricoes');
       if (respInscricoes.status === 401) {
@@ -81,6 +84,12 @@
     const porModalidadeOrdenado = Array.from(contagemPorModalidade).sort((a, b) => b[1] - a[1]);
     for (const [nome, qtd] of porModalidadeOrdenado) {
       cartoes.push(`<div class="cartao-resumo"><span class="numero">${qtd}</span><span class="rotulo-resumo">${nome}</span></div>`);
+    }
+
+    for (const m of modalidades.filter((m) => m.cancelada)) {
+      cartoes.push(
+        `<div class="cartao-resumo cancelada"><span class="numero">Cancelada</span><span class="rotulo-resumo">${m.nome}</span></div>`
+      );
     }
 
     resumoModalidades.innerHTML = cartoes.join('');

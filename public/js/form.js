@@ -51,7 +51,7 @@
     }
 
     try {
-      modalidades = await window.Modalidades.carregar();
+      modalidades = (await window.Modalidades.carregar()).filter((m) => !m.cancelada);
     } catch (e) {
       mostrarMensagem('erro', 'Não foi possível carregar as modalidades. Recarregue a página.');
       return;

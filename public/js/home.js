@@ -5,7 +5,7 @@
   const gradeOficinas = document.getElementById('grade-oficinas');
 
   try {
-    const modalidades = await window.Modalidades.carregar();
+    const modalidades = (await window.Modalidades.carregar()).filter((m) => !m.cancelada);
     gradeIndividuais.innerHTML = modalidades
       .filter((m) => m.tipo === 'individual' && m.secao !== 'oficinas')
       .map(renderCard)
