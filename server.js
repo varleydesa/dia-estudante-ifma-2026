@@ -391,7 +391,7 @@ async function atualizarEmailStatus(ids, status) {
 // Reúne as inscrições ativas de uma pessoa (a partir da matrícula) no mesmo
 // formato usado para montar o e-mail de confirmação — usado tanto no envio
 // original quanto no reenvio manual pelo painel.
-async function montarRegistrosAtivosPorMatricula(matricula) {
+async function montarRegistrosAtivosPorMatricula(matricula, idInscricaoSeSemMatricula) {
   const { rows: inscricoes } = await db.execute({
     sql: `
       SELECT DISTINCT i.id, i.tipo, i.modalidade_nome, i.categoria, i.nome_equipe, i.token_consulta
@@ -400,9 +400,10 @@ async function montarRegistrosAtivosPorMatricula(matricula) {
       WHERE LOWER(TRIM(p.matricula)) = LOWER(?)
         AND (p.capitao = 1 OR i.tipo = 'individual')
         AND i.status != 'cancelada'
+        AND (TRIM(?) != '' OR i.id = ?)
       ORDER BY i.id ASC
     `,
-    args: [matricula],
+    args: [matricula, matricula, idInscricaoSeSemMatricula ?? -1],
   });
 
   const registros = [];
@@ -653,7 +654,7 @@ app.post(
       return erro(res, 400, 'Essa inscrição não tem e-mail válido cadastrado.');
     }
 
-    const { registros, tokenExistente } = await montarRegistrosAtivosPorMatricula(responsavel.matricula);
+    const { registros, tokenExistente } = await montarRegistrosAtivosPorMatricula(responsavel.matricula, id);
     if (registros.length === 0) return erro(res, 404, 'Nenhuma inscrição ativa encontrada para reenviar.');
 
     const token = tokenExistente || crypto.randomBytes(16).toString('hex');
