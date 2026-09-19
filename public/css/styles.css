@@ -1085,10 +1085,6 @@ tr.linha-grupo td:last-child {
   background: var(--verde-suave);
 }
 
-tr.linha-detalhe td:last-child {
-  background: var(--bg);
-}
-
 .emblema {
   display: inline-block;
   font-size: 0.72rem;
@@ -1131,15 +1127,6 @@ tr.linha-grupo:hover {
   background: #e3edd2;
 }
 
-tr.linha-detalhe td {
-  background: var(--bg);
-  color: var(--texto-claro);
-}
-
-tr.linha-detalhe td:nth-child(2) {
-  padding-left: 30px;
-}
-
 .botao-expandir {
   background: none;
   border: none;
@@ -1170,6 +1157,76 @@ tr.linha-cartao td {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px 24px;
+}
+
+tr.linha-quadro td {
+  position: static;
+  background: transparent;
+  padding: 0 0 8px;
+}
+
+/* Quadro de integrantes do time: mesma ideia do cartão de detalhe (fica
+   visível à esquerda mesmo com a tabela rolada para o lado). Usa grade de
+   div, e não tabela, para não herdar os estilos da tabela principal. */
+.quadro-integrantes {
+  position: sticky;
+  left: 16px;
+  width: min(900px, calc(100vw - 64px));
+  box-sizing: border-box;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--verde);
+  border-radius: 10px;
+  padding: 6px 16px 12px;
+  white-space: normal;
+}
+
+.linha-integrante {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.3fr) minmax(0, 1.5fr) minmax(0, 1.5fr);
+  gap: 4px 16px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.88rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.linha-integrante:last-of-type {
+  border-bottom: none;
+}
+
+.cabecalho-integrantes {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-claro);
+}
+
+.contato-integrantes {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--borda);
+  font-size: 0.8rem;
+  color: var(--texto-claro);
+  overflow-wrap: anywhere;
+}
+
+.quadro-integrantes .link-reenviar-email {
+  display: block;
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .linha-integrante {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .cabecalho-integrantes {
+    display: none;
+  }
 }
 
 .item-detalhe {
@@ -1452,8 +1509,16 @@ tr.linha-menu-acoes td {
     background: #f0f0f0 !important;
   }
 
-  tr.linha-detalhe td {
-    background: #fafafa !important;
+  .quadro-integrantes {
+    position: static;
+    width: 100%;
+    border: 1px solid #999;
+    border-left-width: 3px;
+    break-inside: avoid;
+  }
+
+  .link-reenviar-email {
+    display: none;
   }
 
   .emblema {

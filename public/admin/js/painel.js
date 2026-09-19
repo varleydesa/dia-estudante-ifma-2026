@@ -360,14 +360,15 @@
     `;
   }
 
-  function linhaParticipante(inscricao, p, { indentada } = {}) {
+  function linhaParticipante(inscricao, p) {
     const chave = `p${p.id}`;
     const expandido = detalhesExpandidos.has(chave);
+    const descricao = `${inscricao.modalidade_nome} — ${p.nome_completo}`;
     const linha = `
-      <tr${classeLinha(inscricao, indentada ? 'linha-detalhe' : '')}>
-        <td>${indentada ? '' : inscricao.id}</td>
+      <tr${classeLinha(inscricao)}>
+        <td>${inscricao.id}</td>
         <td>${botaoDetalhe(chave, expandido)}</td>
-        <td>${indentada ? '' : statusBadge(inscricao)}</td>
+        <td>${statusBadge(inscricao)}</td>
         <td>${inscricao.modalidade_nome}</td>
         <td>${inscricao.nivel || '—'}</td>
         <td>${inscricao.categoria || '—'}</td>
@@ -380,11 +381,45 @@
         <td>${p.email || '—'}</td>
         <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
         <td>${inscricao.criado_em}</td>
-        <td>${indentada ? '' : celulaAcoes(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`)}</td>
+        <td>${celulaAcoes(inscricao, descricao)}</td>
       </tr>
-      ${!indentada ? linhaMenuAcoes(inscricao, `${inscricao.modalidade_nome} — ${p.nome_completo}`) : ''}
+      ${linhaMenuAcoes(inscricao, descricao)}
     `;
     return expandido ? linha + linhaCartaoDetalhe(inscricao, p) : linha;
+  }
+
+  // Quadro com todos os integrantes de um time, mostrado ao expandir a linha
+  // do time (no lugar de uma linha da tabela para cada integrante).
+  function linhaQuadroIntegrantes(inscricao, capitao) {
+    const avisoReenvio =
+      inscricao.email_status === 'falhou'
+        ? `<button type="button" class="link-reenviar-email" data-reenviar-email="${inscricao.id}">O e-mail de confirmação não foi entregue — reenviar</button>`
+        : '';
+    const contato = [capitao.telefone, capitao.email].filter(Boolean).join(' · ');
+    return `
+      <tr class="linha-quadro${inscricao.status === 'cancelada' ? ' linha-cancelada' : ''}">
+        <td colspan="16">
+          <div class="quadro-integrantes">
+            <div class="linha-integrante cabecalho-integrantes">
+              <span>Nome</span><span>Papel</span><span>Matrícula</span><span>Curso</span>
+            </div>
+            ${inscricao.participantes
+              .map(
+                (p) => `
+              <div class="linha-integrante">
+                <span>${p.nome_completo}</span>
+                <span>${papelDe(p)}</span>
+                <span>${p.matricula || '—'}</span>
+                <span>${p.curso || '—'}</span>
+              </div>`
+              )
+              .join('')}
+            ${contato ? `<div class="contato-integrantes">Contato do capitão(ã): ${contato}</div>` : ''}
+            ${avisoReenvio}
+          </div>
+        </td>
+      </tr>
+    `;
   }
 
   function renderTabela() {
@@ -433,10 +468,10 @@
           <td>${capitao.nome_completo} <span class="emblema capitao">Capitão(ã)</span></td>
           <td>${inscricao.participantes.length} integrante(s)</td>
           <td>${inscricao.nome_equipe || '—'}</td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
+          <td>${capitao.matricula || '—'}</td>
+          <td>${capitao.curso || '—'}</td>
+          <td>${capitao.telefone || '—'}</td>
+          <td>${capitao.email || '—'}</td>
           <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
           <td>${inscricao.criado_em}</td>
           <td>${celulaAcoes(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
@@ -444,11 +479,7 @@
         ${linhaMenuAcoes(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}
       `);
 
-      if (expandido) {
-        for (const p of inscricao.participantes) {
-          linhas.push(linhaParticipante(inscricao, p, { indentada: true }));
-        }
-      }
+      if (expandido) linhas.push(linhaQuadroIntegrantes(inscricao, capitao));
     }
 
     corpoTabela.innerHTML = linhas.join('');
