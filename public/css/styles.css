@@ -1406,12 +1406,18 @@ tr.linha-menu-acoes td {
   .rodape-form,
   footer.principal,
   .overlay-modal,
+  #bloco-prazo,
   tr.linha-menu-acoes,
   table.tabela-inscricoes th:nth-child(2),
-  table.tabela-inscricoes td:nth-child(2),
+  table.tabela-inscricoes tr:not(.linha-quadro) td:nth-child(2),
   table.tabela-inscricoes th:last-child,
-  table.tabela-inscricoes td:last-child {
+  table.tabela-inscricoes tr:not(.linha-quadro) td:last-child {
     display: none !important;
+  }
+
+  table.tabela-inscricoes tr.linha-quadro td {
+    width: auto;
+    padding: 2px 0 6px;
   }
 
   body {
@@ -1435,6 +1441,7 @@ tr.linha-menu-acoes td {
   }
 
   .secao-form {
+    display: block;
     box-shadow: none;
     border: none;
     padding: 0;
@@ -1512,13 +1519,38 @@ tr.linha-menu-acoes td {
   .quadro-integrantes {
     position: static;
     width: 100%;
+    padding: 2px 10px 6px;
     border: 1px solid #999;
     border-left-width: 3px;
+    border-radius: 4px;
     break-inside: avoid;
   }
 
+  .linha-integrante {
+    padding: 2px 0;
+    gap: 2px 10px;
+    font-size: 9px;
+    border-bottom-color: #ddd;
+  }
+
+  .cabecalho-integrantes {
+    font-size: 8px;
+  }
+
+  .linha-integrante .emblema {
+    font-size: 8px;
+    padding: 0 6px;
+  }
+
+  .contato-integrantes {
+    margin-top: 3px;
+    padding-top: 4px;
+    font-size: 8.5px;
+  }
+
+  .quadro-integrantes .link-reenviar-email,
   .link-reenviar-email {
-    display: none;
+    display: none !important;
   }
 
   .emblema {
