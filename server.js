@@ -92,9 +92,10 @@ app.get(
   })
 );
 
-app.get('/api/inscricoes/status', (req, res) => {
+app.get('/api/inscricoes/status', rota(async (req, res) => {
+  await carregarPrazoSalvo();
   res.json({ aberto: inscricoesAbertas(), prazo: prazoInscricoes.toISOString() });
-});
+}));
 
 function erro(res, status, mensagem) {
   return res.status(status).json({ erro: mensagem });
@@ -261,6 +262,7 @@ function validarInscricao(item, responsavel) {
 app.post(
   '/api/inscricoes',
   rota(async (req, res) => {
+    await carregarPrazoSalvo();
     if (!inscricoesAbertas()) {
       return erro(res, 403, mensagemPrazoEncerrado());
     }
@@ -806,9 +808,10 @@ app.get(
 
 // ---------- Prazo de inscrições (admin) ----------
 
-app.get('/api/admin/prazo', auth.exigirLogin, (req, res) => {
+app.get('/api/admin/prazo', auth.exigirLogin, rota(async (req, res) => {
+  await carregarPrazoSalvo();
   res.json({ aberto: inscricoesAbertas(), prazo: prazoInscricoes.toISOString() });
-});
+}));
 
 // Recebe "prazo" no formato "AAAA-MM-DDTHH:mm" (horário de Brasília, o mesmo
 // valor de um campo datetime-local), "agora" para encerrar já ou "aberto"
