@@ -811,7 +811,8 @@ app.get('/api/admin/prazo', auth.exigirLogin, (req, res) => {
 });
 
 // Recebe "prazo" no formato "AAAA-MM-DDTHH:mm" (horário de Brasília, o mesmo
-// valor de um campo datetime-local) ou o texto "agora" para encerrar já.
+// valor de um campo datetime-local), "agora" para encerrar já ou "aberto"
+// para reabrir sem data de encerramento automático.
 app.put(
   '/api/admin/prazo',
   auth.exigirLogin,
@@ -820,6 +821,8 @@ app.put(
     let novoPrazo;
     if (prazo === 'agora') {
       novoPrazo = new Date();
+    } else if (prazo === 'aberto') {
+      novoPrazo = new Date('2099-12-31T23:59:59-03:00');
     } else if (typeof prazo === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(prazo)) {
       novoPrazo = new Date(`${prazo}:59-03:00`);
     } else {

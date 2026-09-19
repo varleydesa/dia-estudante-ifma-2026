@@ -41,14 +41,18 @@
 
         <fieldset class="secao-form" id="bloco-prazo">
           <legend>Prazo de inscrições</legend>
+          <label class="interruptor">
+            <input type="checkbox" id="interruptor-inscricoes" />
+            <span class="trilho"></span>
+            <span id="interruptor-rotulo">Inscrições</span>
+          </label>
           <p id="prazo-status" style="margin-top:0"></p>
           <div class="linha-prazo">
             <div class="campo">
-              <label for="prazo-novo">Novo encerramento (horário de Brasília)</label>
+              <label for="prazo-novo">Encerramento automático (horário de Brasília)</label>
               <input type="datetime-local" id="prazo-novo" />
             </div>
-            <button type="button" class="btn btn-primario btn-pequeno" id="btn-salvar-prazo">Reabrir / definir prazo</button>
-            <button type="button" class="btn btn-secundario btn-pequeno" id="btn-encerrar-agora">Encerrar agora</button>
+            <button type="button" class="btn btn-primario btn-pequeno" id="btn-salvar-prazo">Definir encerramento</button>
           </div>
           <p id="prazo-msg" style="font-size:0.85rem;color:var(--texto-claro);margin-bottom:0"></p>
         </fieldset>

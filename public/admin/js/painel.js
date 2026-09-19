@@ -73,7 +73,8 @@
   const prazoNovo = document.getElementById('prazo-novo');
   const prazoMsg = document.getElementById('prazo-msg');
   const btnSalvarPrazo = document.getElementById('btn-salvar-prazo');
-  const btnEncerrarAgora = document.getElementById('btn-encerrar-agora');
+  const interruptor = document.getElementById('interruptor-inscricoes');
+  const interruptorRotulo = document.getElementById('interruptor-rotulo');
 
   function formatarPrazo(iso) {
     return new Date(iso).toLocaleString('pt-BR', {
@@ -87,10 +88,17 @@
   }
 
   function renderPrazo(dados) {
-    prazoStatus.innerHTML = dados.aberto
-      ? `<strong style="color:var(--verde-escuro)">Inscrições ABERTAS</strong> — encerram em ${formatarPrazo(dados.prazo)}.`
-      : `<strong style="color:var(--erro)">Inscrições ENCERRADAS</strong> desde ${formatarPrazo(dados.prazo)}.`;
-    btnEncerrarAgora.disabled = !dados.aberto;
+    const semPrazo = new Date(dados.prazo).getFullYear() >= 2099;
+    interruptor.checked = dados.aberto;
+    interruptorRotulo.textContent = dados.aberto ? 'Inscrições abertas' : 'Inscrições fechadas';
+    if (dados.aberto) {
+      prazoStatus.innerHTML = semPrazo
+        ? 'Aceitando inscrições, <strong>sem data de encerramento automático</strong>.'
+        : `Aceitando inscrições. Encerram automaticamente em <strong>${formatarPrazo(dados.prazo)}</strong>.`;
+    } else {
+      prazoStatus.innerHTML = `Encerradas desde <strong>${formatarPrazo(dados.prazo)}</strong>. Ligue o interruptor para reabrir.`;
+    }
+    btnSalvarPrazo.textContent = dados.aberto ? 'Definir encerramento' : 'Reabrir até essa data';
   }
 
   async function carregarPrazo() {
@@ -102,8 +110,9 @@
     }
   }
 
-  async function enviarPrazo(prazo) {
+  async function enviarPrazo(prazo, mensagemSucesso) {
     prazoMsg.textContent = 'Salvando…';
+    interruptor.disabled = true;
     try {
       const resp = await fetch('/api/admin/prazo', {
         method: 'PUT',
@@ -113,26 +122,48 @@
       const dados = await resp.json();
       if (!resp.ok) throw new Error(dados.erro || 'Não foi possível salvar.');
       renderPrazo(dados);
-      prazoMsg.textContent = dados.aberto ? 'Prazo atualizado. O formulário já está liberado.' : 'Inscrições encerradas.';
+      prazoMsg.textContent = mensagemSucesso;
     } catch (e) {
       prazoMsg.textContent = e.message;
+      await carregarPrazo();
+    } finally {
+      interruptor.disabled = false;
     }
   }
 
-  btnSalvarPrazo.addEventListener('click', () => {
-    if (!prazoNovo.value) {
-      prazoMsg.textContent = 'Escolha a data e a hora do novo encerramento.';
-      return;
-    }
+  function dataFuturaValida() {
+    if (!prazoNovo.value) return null;
     if (new Date(`${prazoNovo.value}:59-03:00`).getTime() <= Date.now()) {
-      prazoMsg.textContent = 'Essa data já passou. Escolha uma data futura para reabrir as inscrições.';
+      prazoMsg.textContent = 'Essa data já passou. Escolha uma data futura.';
+      return false;
+    }
+    return prazoNovo.value;
+  }
+
+  interruptor.addEventListener('change', () => {
+    if (!interruptor.checked) {
+      if (window.confirm('Fechar as inscrições agora? O formulário deixará de aceitar novos envios.')) {
+        enviarPrazo('agora', 'Inscrições fechadas.');
+      } else {
+        interruptor.checked = true;
+      }
       return;
     }
-    enviarPrazo(prazoNovo.value);
+    const data = dataFuturaValida();
+    if (data === false) {
+      interruptor.checked = false;
+      return;
+    }
+    enviarPrazo(data || 'aberto', data ? 'Inscrições reabertas até a data definida.' : 'Inscrições reabertas, sem data de encerramento.');
   });
 
-  btnEncerrarAgora.addEventListener('click', () => {
-    if (window.confirm('Encerrar as inscrições agora? O formulário deixará de aceitar novos envios.')) enviarPrazo('agora');
+  btnSalvarPrazo.addEventListener('click', () => {
+    const data = dataFuturaValida();
+    if (!data) {
+      if (data === null) prazoMsg.textContent = 'Escolha a data e a hora do encerramento.';
+      return;
+    }
+    enviarPrazo(data, 'Encerramento automático definido. As inscrições estão abertas até essa data.');
   });
 
   function renderResumo() {
