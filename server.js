@@ -479,9 +479,10 @@ app.get(
         JOIN participantes p ON p.inscricao_id = i.id
         WHERE LOWER(TRIM(p.matricula)) = LOWER(?)
           AND (p.capitao = 1 OR i.tipo = 'individual')
+          AND (TRIM(?) != '' OR i.token_consulta = ?)
         ORDER BY i.criado_em ASC
       `,
-      args: [dono[0].matricula],
+      args: [dono[0].matricula, dono[0].matricula, token],
     });
 
     const idsEquipe = rows.filter((r) => r.tipo === 'equipe').map((r) => r.id);
