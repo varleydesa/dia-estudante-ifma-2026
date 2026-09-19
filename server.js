@@ -269,9 +269,10 @@ app.post(
 
     const tx = await db.transaction('write');
     try {
-      // Uma nova inscrição completa substitui qualquer inscrição anterior
-      // dessa mesma pessoa (identificada pela matrícula) que ainda esteja
-      // ativa — o aviso disso já foi mostrado ao aluno na primeira etapa.
+      // Um reenvio substitui apenas as inscrições anteriores ativas dessa mesma
+      // pessoa (identificada pela matrícula) nas modalidades que ela está
+      // enviando de novo — as demais permanecem intactas.
+      const idsModalidades = registros.map((r) => r.modalidade_id);
       const { rows: anteriores } = await tx.execute({
         sql: `
           SELECT DISTINCT i.id
@@ -280,8 +281,9 @@ app.post(
           WHERE i.status != 'cancelada'
             AND LOWER(TRIM(p.matricula)) = LOWER(?)
             AND (p.capitao = 1 OR i.tipo = 'individual')
+            AND i.modalidade_id IN (${idsModalidades.map(() => '?').join(',')})
         `,
-        args: [responsavel.matricula.trim()],
+        args: [responsavel.matricula.trim(), ...idsModalidades],
       });
       for (const anterior of anteriores) {
         await tx.execute({ sql: "UPDATE inscricoes SET status = 'cancelada' WHERE id = ?", args: [anterior.id] });

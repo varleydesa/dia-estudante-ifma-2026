@@ -85,10 +85,10 @@ async function enviarConfirmacaoInscricao(responsavel, registros, canceladasAnte
   }
 
   const avisoTexto = canceladasAnteriores
-    ? '\n\nObs.: sua(s) inscrição(ões) anterior(es) foi(ram) cancelada(s) automaticamente por essa nova inscrição.'
+    ? '\n\nObs.: sua(s) inscrição(ões) anterior(es) nessa(s) mesma(s) modalidade(s) foi(ram) substituída(s) por essa nova inscrição.'
     : '';
   const avisoHtml = canceladasAnteriores
-    ? '<p><em>Obs.: sua(s) inscrição(ões) anterior(es) foi(ram) cancelada(s) automaticamente por essa nova inscrição.</em></p>'
+    ? '<p><em>Obs.: sua(s) inscrição(ões) anterior(es) nessa(s) mesma(s) modalidade(s) foi(ram) substituída(s) por essa nova inscrição.</em></p>'
     : '';
 
   const linkTexto = linkConsulta ? `\n\nPara ver o resumo completo da sua inscrição, acesse:\n${linkConsulta}` : '';

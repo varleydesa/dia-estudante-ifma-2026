@@ -140,7 +140,7 @@
       if (duplicidade.existe) {
         const confirmou = window.confirm(
           `Você já possui inscrição ativa em: ${duplicidade.modalidades.join(', ')}.\n\n` +
-            'Se continuar e enviar esta nova inscrição, a(s) inscrição(ões) anterior(es) será(ão) cancelada(s) automaticamente.\n\n' +
+            'Se você escolher novamente alguma dessas modalidades, a inscrição anterior nela será substituída pela nova. As demais continuam valendo.\n\n' +
             'Deseja continuar?'
         );
         if (!confirmou) return;
@@ -399,7 +399,7 @@
       if (!dados.existe) return;
 
       duplicidade = dados;
-      avisoDuplicidade.textContent = `Você já possui inscrição ativa em: ${dados.modalidades.join(', ')}. Se enviar uma nova inscrição, a(s) anterior(es) será(ão) cancelada(s) automaticamente.`;
+      avisoDuplicidade.textContent = `Você já possui inscrição ativa em: ${dados.modalidades.join(', ')}. Se você escolher novamente alguma dessas modalidades, a inscrição anterior nela será substituída pela nova. As demais continuam valendo.`;
       avisoDuplicidade.hidden = false;
     } catch (e) {
       // Falha na verificação não deve travar o preenchimento; a checagem
@@ -599,7 +599,7 @@
       progressoEtapas.hidden = true;
       acoesPosEnvio.hidden = false;
       const avisoCancelamento = dados.canceladasAnteriores
-        ? ` Sua(s) inscrição(ões) anterior(es) foi(ram) cancelada(s) automaticamente.`
+        ? ` Sua(s) inscrição(ões) anterior(es) nessa(s) mesma(s) modalidade(s) foi(ram) substituída(s).`
         : '';
       mostrarMensagem(
         'sucesso',
