@@ -6,8 +6,11 @@ function criarTransporter(host) {
   if (!process.env.BREVO_SMTP_LOGIN || !process.env.BREVO_SMTP_KEY) return null;
   return nodemailer.createTransport({
     host,
-    port: 587,
+    port: Number(process.env.BREVO_SMTP_PORT) || 2525,
     secure: false,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
     auth: {
       user: process.env.BREVO_SMTP_LOGIN,
       pass: process.env.BREVO_SMTP_KEY,
