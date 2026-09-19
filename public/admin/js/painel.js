@@ -519,7 +519,7 @@
       botaoReenviarEmail.disabled = true;
       botaoReenviarEmail.textContent = 'Reenviando…';
       try {
-        const resp = await fetch(`/api/admin/inscricoes/${id}/reenviar-email`, { method: 'POST' });
+        const resp = await fetch(`/api/admin/inscricoes/${id}/reenviar-email`, { method: 'POST', signal: AbortSignal.timeout(60000) });
         const dados = await resp.json();
         if (!resp.ok) throw new Error(dados.erro || 'Falha ao reenviar.');
         for (const idAtualizado of dados.idsAtualizados || [id]) {
@@ -528,7 +528,11 @@
         }
         renderTabela();
       } catch (e) {
-        alert(e.message || 'Não foi possível reenviar o e-mail. Tente novamente.');
+        alert(
+          e.name === 'TimeoutError'
+            ? 'O servidor demorou demais para responder e o e-mail provavelmente não foi enviado. Tente novamente.'
+            : e.message || 'Não foi possível reenviar o e-mail. Tente novamente.'
+        );
         botaoReenviarEmail.disabled = false;
         botaoReenviarEmail.textContent = 'O e-mail de confirmação não foi entregue — reenviar';
       }

@@ -78,12 +78,34 @@ function listarModalidadesHtml(registros) {
     .join('');
 }
 
+// Envio pela API HTTPS da Brevo (porta 443). Serviços de hospedagem costumam
+// bloquear as portas SMTP, mas não bloqueiam HTTPS.
+async function enviarPorApi(mensagem, texto, html) {
+  const resp = await fetch(process.env.BREVO_API_URL || 'https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name: 'Dia do Estudante 2026 - IFMA', email: remetente },
+      to: [{ email: mensagem.to }],
+      subject: mensagem.subject,
+      textContent: texto,
+      htmlContent: html,
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!resp.ok) throw new Error(`API da Brevo respondeu ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+}
+
 // Nunca lança erro — quem chama decide se quer aguardar o resultado (ex: para
 // registrar o status) ou disparar em segundo plano sem bloquear a resposta.
 // Resolve para true/false conforme o e-mail foi entregue ou não.
 async function enviarConfirmacaoInscricao(responsavel, registros, canceladasAnteriores, linkConsulta) {
-  if (!transporterPrincipal) {
-    console.warn('BREVO_SMTP_LOGIN/BREVO_SMTP_KEY não configurados — e-mail de confirmação não enviado.');
+  if (!process.env.BREVO_API_KEY && !transporterPrincipal) {
+    console.warn('Nem BREVO_API_KEY nem BREVO_SMTP_LOGIN/BREVO_SMTP_KEY configurados — e-mail de confirmação não enviado.');
     return false;
   }
 
@@ -126,6 +148,17 @@ Este é um e-mail automático de confirmação. Em caso de dúvidas, procure a o
     text: texto,
     html,
   };
+
+  if (process.env.BREVO_API_KEY) {
+    try {
+      await enviarPorApi(mensagem, texto, html);
+      return true;
+    } catch (e0) {
+      console.warn('Falha ao enviar pela API da Brevo, tentando SMTP:', e0.message);
+    }
+  }
+
+  if (!transporterPrincipal) return false;
 
   try {
     await transporterPrincipal.sendMail(mensagem);
