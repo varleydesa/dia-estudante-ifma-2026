@@ -144,6 +144,11 @@ async function iniciar() {
     CREATE INDEX IF NOT EXISTS idx_participantes_inscricao ON participantes(inscricao_id);
     CREATE INDEX IF NOT EXISTS idx_inscricoes_modalidade ON inscricoes(modalidade_id);
 
+    CREATE TABLE IF NOT EXISTS configuracoes (
+      chave TEXT PRIMARY KEY,
+      valor TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS admin (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       usuario TEXT NOT NULL UNIQUE,

@@ -58,6 +58,7 @@
 
       renderResumo();
       renderTabela();
+      carregarPrazo();
 
       carregando.style.display = 'none';
       conteudo.style.display = 'block';
@@ -65,6 +66,74 @@
       carregando.textContent = 'Não foi possível carregar o painel. Recarregue a página.';
     }
   }
+
+  // ---------- Prazo de inscrições ----------
+
+  const prazoStatus = document.getElementById('prazo-status');
+  const prazoNovo = document.getElementById('prazo-novo');
+  const prazoMsg = document.getElementById('prazo-msg');
+  const btnSalvarPrazo = document.getElementById('btn-salvar-prazo');
+  const btnEncerrarAgora = document.getElementById('btn-encerrar-agora');
+
+  function formatarPrazo(iso) {
+    return new Date(iso).toLocaleString('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  function renderPrazo(dados) {
+    prazoStatus.innerHTML = dados.aberto
+      ? `<strong style="color:var(--verde-escuro)">Inscrições ABERTAS</strong> — encerram em ${formatarPrazo(dados.prazo)}.`
+      : `<strong style="color:var(--erro)">Inscrições ENCERRADAS</strong> desde ${formatarPrazo(dados.prazo)}.`;
+    btnEncerrarAgora.disabled = !dados.aberto;
+  }
+
+  async function carregarPrazo() {
+    try {
+      const resp = await fetch('/api/admin/prazo');
+      if (resp.ok) renderPrazo(await resp.json());
+    } catch (e) {
+      prazoStatus.textContent = 'Não foi possível carregar o prazo agora.';
+    }
+  }
+
+  async function enviarPrazo(prazo) {
+    prazoMsg.textContent = 'Salvando…';
+    try {
+      const resp = await fetch('/api/admin/prazo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prazo }),
+      });
+      const dados = await resp.json();
+      if (!resp.ok) throw new Error(dados.erro || 'Não foi possível salvar.');
+      renderPrazo(dados);
+      prazoMsg.textContent = dados.aberto ? 'Prazo atualizado. O formulário já está liberado.' : 'Inscrições encerradas.';
+    } catch (e) {
+      prazoMsg.textContent = e.message;
+    }
+  }
+
+  btnSalvarPrazo.addEventListener('click', () => {
+    if (!prazoNovo.value) {
+      prazoMsg.textContent = 'Escolha a data e a hora do novo encerramento.';
+      return;
+    }
+    if (new Date(`${prazoNovo.value}:59-03:00`).getTime() <= Date.now()) {
+      prazoMsg.textContent = 'Essa data já passou. Escolha uma data futura para reabrir as inscrições.';
+      return;
+    }
+    enviarPrazo(prazoNovo.value);
+  });
+
+  btnEncerrarAgora.addEventListener('click', () => {
+    if (window.confirm('Encerrar as inscrições agora? O formulário deixará de aceitar novos envios.')) enviarPrazo('agora');
+  });
 
   function renderResumo() {
     const ativas = inscricoes.filter((i) => i.status !== 'cancelada');

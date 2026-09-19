@@ -922,6 +922,13 @@ fieldset.secao-form legend {
   color: var(--erro);
 }
 
+.linha-prazo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
 .container.container-painel {
   max-width: 1280px;
 }

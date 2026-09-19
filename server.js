@@ -21,14 +21,24 @@ const modalidadesPorId = new Map(modalidades.map((m) => [m.id, m]));
 // Fuso fixo (-03:00) porque o Maranhão não tem horário de verão, independente
 // de onde o servidor (Render) roda — assim a comparação de prazo não depende
 // do fuso do host.
-const PRAZO_INSCRICOES = new Date(process.env.INSCRICOES_PRAZO || '2026-09-18T23:59:59-03:00');
+// Valor inicial; se o admin definir outro prazo no painel, ele fica guardado no
+// banco (tabela "configuracoes") e prevalece sobre este.
+let prazoInscricoes = new Date(process.env.INSCRICOES_PRAZO || '2026-09-18T23:59:59-03:00');
+
+async function carregarPrazoSalvo() {
+  const { rows } = await db.execute("SELECT valor FROM configuracoes WHERE chave = 'inscricoes_prazo'");
+  if (rows.length > 0) {
+    const data = new Date(rows[0].valor);
+    if (!Number.isNaN(data.getTime())) prazoInscricoes = data;
+  }
+}
 
 function inscricoesAbertas() {
-  return Date.now() < PRAZO_INSCRICOES.getTime();
+  return Date.now() < prazoInscricoes.getTime();
 }
 
 function mensagemPrazoEncerrado() {
-  const formatado = PRAZO_INSCRICOES.toLocaleString('pt-BR', {
+  const formatado = prazoInscricoes.toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: '2-digit',
@@ -83,7 +93,7 @@ app.get(
 );
 
 app.get('/api/inscricoes/status', (req, res) => {
-  res.json({ aberto: inscricoesAbertas(), prazo: PRAZO_INSCRICOES.toISOString() });
+  res.json({ aberto: inscricoesAbertas(), prazo: prazoInscricoes.toISOString() });
 });
 
 function erro(res, status, mensagem) {
@@ -794,6 +804,39 @@ app.get(
   })
 );
 
+// ---------- Prazo de inscrições (admin) ----------
+
+app.get('/api/admin/prazo', auth.exigirLogin, (req, res) => {
+  res.json({ aberto: inscricoesAbertas(), prazo: prazoInscricoes.toISOString() });
+});
+
+// Recebe "prazo" no formato "AAAA-MM-DDTHH:mm" (horário de Brasília, o mesmo
+// valor de um campo datetime-local) ou o texto "agora" para encerrar já.
+app.put(
+  '/api/admin/prazo',
+  auth.exigirLogin,
+  rota(async (req, res) => {
+    const { prazo } = req.body || {};
+    let novoPrazo;
+    if (prazo === 'agora') {
+      novoPrazo = new Date();
+    } else if (typeof prazo === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(prazo)) {
+      novoPrazo = new Date(`${prazo}:59-03:00`);
+    } else {
+      return erro(res, 400, 'Informe uma data e hora válidas para o encerramento.');
+    }
+    if (Number.isNaN(novoPrazo.getTime())) return erro(res, 400, 'Data e hora inválidas.');
+
+    await db.execute({
+      sql: `INSERT INTO configuracoes (chave, valor) VALUES ('inscricoes_prazo', ?)
+            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor`,
+      args: [novoPrazo.toISOString()],
+    });
+    prazoInscricoes = novoPrazo;
+    res.json({ aberto: inscricoesAbertas(), prazo: prazoInscricoes.toISOString() });
+  })
+);
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err);
@@ -802,6 +845,7 @@ app.use((err, req, res, next) => {
 
 iniciar()
   .then(() => auth.seedAdminSeNecessario())
+  .then(() => carregarPrazoSalvo())
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Site do Dia do Estudante 2026 rodando em http://localhost:${PORT}`);
