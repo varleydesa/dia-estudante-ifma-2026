@@ -94,10 +94,19 @@ function textoValido(v, max = 200) {
   return typeof v === 'string' && v.trim().length > 0 && v.trim().length <= max;
 }
 
+// Barra entradas claramente erradas (e-mail, texto sem número) que colidiriam
+// com a matrícula de outras pessoas nas checagens de duplicidade.
+function matriculaValida(m) {
+  return typeof m === 'string' && !m.includes('@') && (m.match(/\d/g) || []).length >= 5;
+}
+
+const MSG_MATRICULA = 'Matrícula inválida. Digite o número da matrícula completo (ex.: 20261AGRO.SRM0034).';
+
 function validarResponsavel(responsavel) {
   if (!responsavel || typeof responsavel !== 'object') return 'Dados do responsável ausentes.';
   if (!textoValido(responsavel.nome_completo)) return 'Informe o nome completo do responsável.';
   if (!textoValido(responsavel.matricula, 50)) return 'Informe a matrícula do responsável.';
+  if (!matriculaValida(responsavel.matricula)) return MSG_MATRICULA;
   if (!textoValido(responsavel.curso)) return 'Informe o curso do responsável.';
   if (!textoValido(responsavel.telefone, 30)) return 'Informe um telefone de contato.';
   if (!textoValido(responsavel.email, 120) || !responsavel.email.includes('@')) {
@@ -113,6 +122,7 @@ function validarAtleta(a) {
   if (!a || typeof a !== 'object') return 'Dados de atleta inválidos.';
   if (!textoValido(a.nome_completo)) return 'Informe o nome completo de todos os integrantes.';
   if (!textoValido(a.matricula, 50)) return 'Informe a matrícula de todos os integrantes.';
+  if (!matriculaValida(a.matricula)) return `${MSG_MATRICULA} (integrante: ${String(a.nome_completo).trim()})`;
   return null;
 }
 

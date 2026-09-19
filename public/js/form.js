@@ -407,11 +407,18 @@
     }
   }
 
+  const MSG_MATRICULA = 'Matrícula inválida. Digite o número da matrícula completo (ex.: 20261AGRO.SRM0034).';
+
+  function matriculaValida(m) {
+    return !m.includes('@') && (m.match(/\d/g) || []).length >= 5;
+  }
+
   function validarDados() {
     const r = coletarResponsavel();
     if (!r.nome_completo || !r.matricula || !r.curso || !r.telefone || !r.email) {
       return 'Preencha todos os campos obrigatórios em "Seus dados".';
     }
+    if (!matriculaValida(r.matricula)) return MSG_MATRICULA;
     if (!r.nivel) {
       return 'Selecione seu nível de ensino.';
     }
@@ -446,6 +453,7 @@
         const matricula = linha.querySelector('[data-atleta-matricula]').value.trim();
         const curso = linha.querySelector('[data-atleta-curso]').value.trim();
         if (!nome || !matricula) return { erro: `Preencha nome e matrícula de todos os integrantes em "${m.nome}".` };
+        if (!matriculaValida(matricula)) return { erro: `${MSG_MATRICULA} (integrante: ${nome})` };
         const atleta = { nome_completo: nome, matricula, curso: curso || undefined };
         const selTitular = linha.querySelector('[data-atleta-titular]');
         if (selTitular) atleta.titular = selTitular.value === 'titular';
