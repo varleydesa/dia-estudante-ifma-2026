@@ -1559,3 +1559,10 @@ tr.linha-menu-acoes td {
     color: #000 !important;
   }
 }
+
+/* Conta de consulta: sem controles de alteração (o servidor também bloqueia). */
+body.somente-leitura #bloco-prazo,
+body.somente-leitura table.tabela-inscricoes th:last-child,
+body.somente-leitura table.tabela-inscricoes tr:not(.linha-quadro):not(.linha-cartao) td:last-child {
+  display: none;
+}

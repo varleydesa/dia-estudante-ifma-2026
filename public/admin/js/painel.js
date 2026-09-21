@@ -26,6 +26,7 @@
   const detalhesExpandidos = new Set();
   const menusAcoesAbertos = new Set();
   let idParaExcluir = null;
+  let somenteLeitura = false;
 
   init();
 
@@ -41,7 +42,9 @@
         window.location.href = 'trocar-senha.html?obrigatorio=1';
         return;
       }
-      usuarioLogado.textContent = dadosMe.usuario;
+      somenteLeitura = dadosMe.papel !== 'admin';
+      document.body.classList.toggle('somente-leitura', somenteLeitura);
+      usuarioLogado.textContent = somenteLeitura ? `${dadosMe.usuario} (somente consulta)` : dadosMe.usuario;
 
       modalidades = await window.Modalidades.carregar();
       filtroModalidade.innerHTML += modalidades
@@ -262,6 +265,7 @@
   // Ícones lado a lado em telas largas; em telas estreitas, some por trás de
   // um botão "⋮" que abre uma linha abaixo com as ações por extenso.
   function celulaAcoes(inscricao, descricao) {
+    if (somenteLeitura) return '';
     const aberto = menusAcoesAbertos.has(inscricao.id);
     return `
       <div class="acoes-icones">
@@ -273,7 +277,7 @@
   }
 
   function linhaMenuAcoes(inscricao, descricao) {
-    if (!menusAcoesAbertos.has(inscricao.id)) return '';
+    if (somenteLeitura || !menusAcoesAbertos.has(inscricao.id)) return '';
     return `
       <tr class="linha-menu-acoes">
         <td colspan="16">
@@ -318,7 +322,7 @@
       ['Inscrito em', inscricao.criado_em],
     ];
     const avisoReenvio =
-      inscricao.email_status === 'falhou'
+      !somenteLeitura && inscricao.email_status === 'falhou'
         ? `<button type="button" class="link-reenviar-email" data-reenviar-email="${inscricao.id}">O e-mail de confirmação não foi entregue — reenviar</button>`
         : '';
     return `
@@ -392,7 +396,7 @@
   // do time (no lugar de uma linha da tabela para cada integrante).
   function linhaQuadroIntegrantes(inscricao, capitao) {
     const avisoReenvio =
-      inscricao.email_status === 'falhou'
+      !somenteLeitura && inscricao.email_status === 'falhou'
         ? `<button type="button" class="link-reenviar-email" data-reenviar-email="${inscricao.id}">O e-mail de confirmação não foi entregue — reenviar</button>`
         : '';
     const contato = [capitao.telefone, capitao.email].filter(Boolean).join(' · ');

@@ -571,6 +571,7 @@ app.get(
     const admin = await auth.buscarAdminPorUsuario(req.session.adminUsuario);
     res.json({
       usuario: req.session.adminUsuario,
+      papel: admin ? admin.papel : 'leitor',
       precisaTrocarSenha: !admin || admin.senha_trocada === 0,
     });
   })
@@ -600,6 +601,7 @@ app.post(
 app.delete(
   '/api/admin/inscricoes/:id',
   auth.exigirLogin,
+  auth.exigirAdminCompleto,
   rota(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) {
@@ -624,6 +626,7 @@ app.delete(
 app.patch(
   '/api/admin/inscricoes/:id/status',
   auth.exigirLogin,
+  auth.exigirAdminCompleto,
   rota(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) {
@@ -646,6 +649,7 @@ app.patch(
 app.post(
   '/api/admin/inscricoes/:id/reenviar-email',
   auth.exigirLogin,
+  auth.exigirAdminCompleto,
   rota(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return erro(res, 400, 'ID inválido.');
@@ -819,6 +823,7 @@ app.get('/api/admin/prazo', auth.exigirLogin, rota(async (req, res) => {
 app.put(
   '/api/admin/prazo',
   auth.exigirLogin,
+  auth.exigirAdminCompleto,
   rota(async (req, res) => {
     const { prazo } = req.body || {};
     let novoPrazo;

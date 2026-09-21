@@ -19,11 +19,11 @@ async function seedAdminSeNecessario() {
   console.log(`Conta de admin criada para "${usuario}". Troca de senha será exigida no primeiro login.`);
 }
 
-async function criarAdmin(usuario, senha) {
+async function criarAdmin(usuario, senha, papel = 'admin') {
   const hash = bcrypt.hashSync(senha, 10);
   await db.execute({
-    sql: 'INSERT INTO admin (usuario, senha_hash, senha_trocada) VALUES (?, ?, 0)',
-    args: [String(usuario).trim(), hash],
+    sql: 'INSERT INTO admin (usuario, senha_hash, senha_trocada, papel) VALUES (?, ?, 0, ?)',
+    args: [String(usuario).trim(), hash, papel],
   });
 }
 
@@ -61,6 +61,19 @@ function exigirLogin(req, res, next) {
   return res.status(401).json({ erro: 'Sessão expirada ou não autenticada. Faça login novamente.' });
 }
 
+// Ações que alteram dados (cancelar, excluir, reenviar e-mail, prazo) exigem
+// papel 'admin'; contas 'leitor' só consultam, filtram e imprimem. O papel é
+// lido do banco a cada chamada, então mudar a conta vale na hora.
+async function exigirAdminCompleto(req, res, next) {
+  try {
+    const admin = await buscarAdminPorUsuario(req.session.adminUsuario);
+    if (admin && admin.papel === 'admin') return next();
+    return res.status(403).json({ erro: 'Seu acesso é somente de consulta. Essa ação não é permitida.' });
+  } catch (e) {
+    return next(e);
+  }
+}
+
 module.exports = {
   seedAdminSeNecessario,
   criarAdmin,
@@ -69,4 +82,5 @@ module.exports = {
   trocarSenha,
   conferirSenhaAtual,
   exigirLogin,
+  exigirAdminCompleto,
 };

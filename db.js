@@ -95,6 +95,17 @@ async function migrarEmailStatus() {
   console.log('Coluna "email_status" adicionada à tabela "inscricoes".');
 }
 
+// Adiciona a coluna "papel" ('admin' = acesso total, 'leitor' = só consulta)
+// a bancos criados antes dela existir. Contas antigas continuam 'admin'.
+async function migrarPapelAdmin() {
+  const { rows } = await db.execute('PRAGMA table_info(admin)');
+  if (rows.length === 0) return;
+  if (rows.some((c) => c.name === 'papel')) return;
+
+  await db.execute("ALTER TABLE admin ADD COLUMN papel TEXT NOT NULL DEFAULT 'admin'");
+  console.log('Coluna "papel" adicionada à tabela "admin".');
+}
+
 async function iniciar() {
   // O Turso mantém "foreign_keys" ligado por padrão. Migrações que recriam
   // tabelas (DROP + RENAME) disparariam ON DELETE CASCADE contra as linhas
@@ -111,6 +122,7 @@ async function iniciar() {
   await migrarStatusInscricoes();
   await migrarTokenConsulta();
   await migrarEmailStatus();
+  await migrarPapelAdmin();
 
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS inscricoes (
@@ -154,6 +166,7 @@ async function iniciar() {
       usuario TEXT NOT NULL UNIQUE,
       senha_hash TEXT NOT NULL,
       senha_trocada INTEGER NOT NULL DEFAULT 0,
+      papel TEXT NOT NULL DEFAULT 'admin',
       atualizado_em TEXT NOT NULL DEFAULT (datetime('now', '-3 hours'))
     );
   `);
