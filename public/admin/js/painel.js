@@ -443,6 +443,18 @@
     tabelaElemento.classList.toggle('sem-coletiva', !temColetiva);
     tabelaElemento.classList.toggle('sem-provas', !temProvas);
 
+    // Se a lista só tem times com o quadro aberto, Nome/Matrícula/Curso/
+    // Telefone/E-mail ficariam vazios na linha do time (estão no quadro).
+    const soTimesAbertos =
+      grupos.length > 0 &&
+      grupos.every(
+        ({ inscricao, buscaAtiva }) =>
+          inscricao.tipo === 'equipe' &&
+          inscricao.participantes.length > 1 &&
+          (buscaAtiva || gruposExpandidos.has(inscricao.id))
+      );
+    tabelaElemento.classList.toggle('sem-dados-pessoais', soTimesAbertos);
+
     const linhas = [];
 
     for (const { inscricao, buscaAtiva } of grupos) {

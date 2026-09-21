@@ -1064,6 +1064,19 @@ table.tabela-inscricoes.sem-provas td:nth-child(14) {
   display: none;
 }
 
+table.tabela-inscricoes.sem-dados-pessoais th:nth-child(7),
+table.tabela-inscricoes.sem-dados-pessoais td:nth-child(7),
+table.tabela-inscricoes.sem-dados-pessoais th:nth-child(10),
+table.tabela-inscricoes.sem-dados-pessoais td:nth-child(10),
+table.tabela-inscricoes.sem-dados-pessoais th:nth-child(11),
+table.tabela-inscricoes.sem-dados-pessoais td:nth-child(11),
+table.tabela-inscricoes.sem-dados-pessoais th:nth-child(12),
+table.tabela-inscricoes.sem-dados-pessoais td:nth-child(12),
+table.tabela-inscricoes.sem-dados-pessoais th:nth-child(13),
+table.tabela-inscricoes.sem-dados-pessoais td:nth-child(13) {
+  display: none;
+}
+
 /* Coluna "Ações" fixa na borda direita, para não sumir ao rolar a tabela */
 table.tabela-inscricoes th:last-child,
 table.tabela-inscricoes td:last-child {
