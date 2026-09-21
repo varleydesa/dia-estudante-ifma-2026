@@ -1420,6 +1420,18 @@ tr.linha-menu-acoes td {
     padding: 2px 0 6px;
   }
 
+  /* Não separa a linha do time dos seus integrantes entre páginas. */
+  tr.linha-grupo {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  tr.linha-quadro {
+    break-before: avoid;
+    page-break-before: avoid;
+    break-inside: avoid;
+  }
+
   body {
     background: #fff;
   }

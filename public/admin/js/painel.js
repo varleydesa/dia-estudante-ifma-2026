@@ -461,6 +461,17 @@
       const expandido = buscaAtiva || gruposExpandidos.has(inscricao.id);
       const capitao = inscricao.participantes.find((p) => p.capitao) || inscricao.participantes[0];
 
+      // Com o quadro aberto, nome/matrícula/curso/contato do capitão já aparecem
+      // nele — a linha do time não repete. Fechada, mostra o capitão como resumo.
+      const dadosCapitao = expandido
+        ? ['', '', '', '']
+        : [
+            `${capitao.nome_completo} <span class="emblema capitao">Capitão(ã)</span>`,
+            capitao.matricula || '—',
+            capitao.curso || '—',
+            `${capitao.telefone || '—'}`,
+          ];
+      const emailCapitao = expandido ? '' : capitao.email || '—';
       linhas.push(`
         <tr${classeLinha(inscricao, 'linha-grupo')} data-toggle-grupo="${inscricao.id}">
           <td>${inscricao.id}</td>
@@ -469,13 +480,13 @@
           <td>${inscricao.modalidade_nome}</td>
           <td>${inscricao.nivel || '—'}</td>
           <td>${inscricao.categoria || '—'}</td>
-          <td>${capitao.nome_completo} <span class="emblema capitao">Capitão(ã)</span></td>
+          <td>${dadosCapitao[0]}</td>
           <td>${inscricao.participantes.length} integrante(s)</td>
           <td>${inscricao.nome_equipe || '—'}</td>
-          <td>${capitao.matricula || '—'}</td>
-          <td>${capitao.curso || '—'}</td>
-          <td>${capitao.telefone || '—'}</td>
-          <td>${capitao.email || '—'}</td>
+          <td>${dadosCapitao[1]}</td>
+          <td>${dadosCapitao[2]}</td>
+          <td>${dadosCapitao[3]}</td>
+          <td>${emailCapitao}</td>
           <td>${inscricao.provas ? inscricao.provas.join(', ') : '—'}</td>
           <td>${inscricao.criado_em}</td>
           <td>${celulaAcoes(inscricao, `${inscricao.modalidade_nome} — ${inscricao.nome_equipe}`)}</td>
@@ -679,6 +690,17 @@
     renderTabela();
     window.print();
   });
+
+  // Na impressão duas colunas somem (seta e Ações). Linhas que ocupam a tabela
+  // inteira (quadro de integrantes, cartão de detalhe) precisam do mesmo total,
+  // senão a tabela ganha colunas fantasmas e passa da largura da página.
+  function ajustarColspanImpressao(imprimindo) {
+    const visiveis = Array.from(tabelaElemento.querySelectorAll('thead th')).filter((th) => th.offsetParent !== null).length;
+    const total = imprimindo ? Math.max(visiveis - 2, 1) : 16;
+    tabelaElemento.querySelectorAll('tr.linha-quadro td, tr.linha-cartao td').forEach((td) => td.setAttribute('colspan', total));
+  }
+  window.addEventListener('beforeprint', () => ajustarColspanImpressao(true));
+  window.addEventListener('afterprint', () => ajustarColspanImpressao(false));
 
   btnSair.addEventListener('click', async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
